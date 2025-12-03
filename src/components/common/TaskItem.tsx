@@ -14,7 +14,7 @@ interface TaskItemProps {
   isLoading?: boolean;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({
+const TaskItem: React.FC<TaskItemProps> = React.memo(({
   task,
   onToggleComplete,
   onEdit,
@@ -52,7 +52,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
       {/* Timeline dot and connector */}
       <div className="relative flex flex-col items-center">
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
+          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
           style={{ backgroundColor: `${color}15` }}
         >
           <div
@@ -68,7 +68,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
       {/* Task Card */}
       <div
-        className={`flex-1 glass rounded-xl p-4 transition-all ${
+        className={`flex-1 glass rounded-xl p-4 ${
           task.isCompleted ? 'opacity-50' : ''
         }`}
         style={{ borderLeft: `3px solid ${color}` }}
@@ -82,7 +82,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
             />
             <div className="flex-1 min-w-0">
               <h4
-                className={`font-medium text-foreground transition-all ${
+                className={`font-medium text-foreground ${
                   task.isCompleted ? 'line-through text-neutral-400' : ''
                 }`}
               >
@@ -124,7 +124,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-neutral-100 transition-all"
+              className="p-2 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-neutral-100 transition-opacity duration-150"
             >
               <MoreVertical size={16} className="text-neutral-400" />
             </button>
@@ -161,6 +161,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
       </div>
     </div>
   );
-};
+});
+
+TaskItem.displayName = 'TaskItem';
 
 export default TaskItem;

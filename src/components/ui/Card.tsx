@@ -21,7 +21,7 @@ const Card: React.FC<CardProps> = ({
   glow = false,
   onClick,
 }) => {
-  const baseStyles = 'rounded-2xl transition-all';
+  const baseStyles = 'rounded-2xl';
 
   const variants = {
     default: 'bg-white border border-neutral-200 shadow-sm',

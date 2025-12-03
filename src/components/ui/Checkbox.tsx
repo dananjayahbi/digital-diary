@@ -30,7 +30,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             {...props}
           />
           <div
-            className="w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center
+            className="w-5 h-5 rounded-md border-2 transition-colors duration-150 flex items-center justify-center
                        peer-checked:border-transparent peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2"
             style={{
               borderColor: checked ? bgColor : borderColor,
@@ -42,7 +42,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         </div>
         {label && (
           <span
-            className={`text-sm transition-all duration-200 ${
+            className={`text-sm ${
               checked ? 'text-neutral-400 line-through' : 'text-foreground'
             }`}
           >

@@ -43,7 +43,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               text-foreground
               placeholder:text-neutral-400
               focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-muted
-              transition-all duration-200
+              transition-colors duration-150
               ${error ? 'border-task-red focus:border-task-red focus:ring-accent-muted' : ''}
               ${className}
             `}

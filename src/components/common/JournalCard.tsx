@@ -105,7 +105,7 @@ const JournalCard: React.FC<JournalCardProps> = ({
                 key={type}
                 onClick={() => setSelectedMood(selectedMood === type ? undefined : type)}
                 className={`
-                  flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all
+                  flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors duration-150
                   ${selectedMood === type 
                     ? 'bg-primary text-white' 
                     : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'

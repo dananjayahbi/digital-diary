@@ -26,7 +26,7 @@ const DailyCard: React.FC<DailyCardProps> = ({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl cursor-pointer group transition-all hover:shadow-lg"
+      className="relative overflow-hidden rounded-2xl cursor-pointer group"
       onClick={onClick}
     >
       {/* Main image container */}
@@ -35,11 +35,11 @@ const DailyCard: React.FC<DailyCardProps> = ({
           src={imageUrl}
           alt="Daily inspiration"
           fill
-          className="object-cover transition-transform group-hover:scale-105"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
       </div>
 
       {/* Top badge */}
@@ -56,7 +56,7 @@ const DailyCard: React.FC<DailyCardProps> = ({
               e.stopPropagation();
               setIsLiked(!isLiked);
             }}
-            className={`p-2 rounded-full transition-all ${
+            className={`p-2 rounded-full transition-colors duration-150 ${
               isLiked 
                 ? 'bg-red-500 text-white' 
                 : 'bg-white/90 text-neutral-600 hover:bg-white'
@@ -66,7 +66,7 @@ const DailyCard: React.FC<DailyCardProps> = ({
           </button>
           <button 
             onClick={(e) => e.stopPropagation()}
-            className="p-2 rounded-full bg-white/90 text-neutral-600 hover:bg-white transition-all"
+            className="p-2 rounded-full bg-white/90 text-neutral-600 hover:bg-white transition-colors duration-150"
           >
             <Share2 size={14} />
           </button>

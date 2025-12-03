@@ -108,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={index}
                   onClick={() => onDateSelect(date)}
                   className={`
-                    aspect-square flex items-center justify-center text-sm rounded-lg transition-all
+                    aspect-square flex items-center justify-center text-sm rounded-lg transition-colors duration-150
                     ${!isCurrentMonth ? 'text-neutral-300' : 'text-neutral-700'}
                     ${isTodayDate && !isSelected ? 'font-bold text-primary ring-1 ring-primary' : ''}
                     ${isSelected 
@@ -137,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full transition-all bg-primary"
+                className="h-full rounded-full transition-[width] duration-300 ease-out bg-primary"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>

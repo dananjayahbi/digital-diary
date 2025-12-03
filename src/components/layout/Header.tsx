@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen }) => {
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-5 py-2 rounded-full text-sm font-medium text-neutral-600 hover:text-primary hover:bg-white transition-all"
+                className="px-5 py-2 rounded-full text-sm font-medium text-neutral-600 hover:text-primary hover:bg-white transition-colors duration-150"
               >
                 {item.label}
               </Link>

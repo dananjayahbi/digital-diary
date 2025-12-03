@@ -47,7 +47,7 @@ const StreakWidget: React.FC<StreakWidgetProps> = ({
               </span>
               <div
                 className={`
-                  w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                  w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium
                   ${isTodayDate
                     ? 'bg-primary text-white ring-2 ring-primary/30 ring-offset-2'
                     : isActive
