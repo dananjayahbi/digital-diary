@@ -12,12 +12,16 @@ interface SidebarProps {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
   streak?: number;
+  completedTasks?: number;
+  totalTasks?: number;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   selectedDate,
   onDateSelect,
   streak = 0,
+  completedTasks = 0,
+  totalTasks = 0,
 }) => {
   const [viewDate, setViewDate] = React.useState(new Date());
 
@@ -118,12 +122,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
               <span>Tasks Completed</span>
-              <span className="font-semibold text-primary">0/0</span>
+              <span className="font-semibold text-primary">{completedTasks}/{totalTasks}</span>
             </div>
             <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: '0%' }}
+                style={{ width: totalTasks > 0 ? `${(completedTasks / totalTasks) * 100}%` : '0%' }}
               />
             </div>
           </div>

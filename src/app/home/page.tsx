@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Sun, Sparkles } from 'lucide-react';
 import { Header, Sidebar } from '@/components/layout';
 import {
@@ -13,71 +13,42 @@ import {
 } from '@/components/common';
 import { Card } from '@/components/ui';
 import { formatDate, getGreeting } from '@/lib/utils';
+import { useTasks, useStreaks, usePrompt, useDiary } from '@/hooks';
 import type { Task, TaskFormData, MoodType } from '@/types';
 
 const HomePage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([
-    // Demo tasks
-    {
-      id: '1',
-      title: 'Morning Meditation',
-      description: 'Start the day with 10 minutes of mindfulness',
-      startTime: new Date(new Date().setHours(7, 0, 0, 0)),
-      endTime: new Date(new Date().setHours(7, 15, 0, 0)),
-      duration: 15,
-      isCompleted: true,
-      priority: 'medium',
-      categoryId: null,
-      category: { id: '1', name: 'Wellness', color: 'var(--task-purple)', icon: null, createdAt: new Date(), updatedAt: new Date() },
-      date: new Date(),
-      order: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      title: 'Morning Walk',
-      description: 'Walk around the neighborhood',
-      startTime: new Date(new Date().setHours(7, 30, 0, 0)),
-      endTime: new Date(new Date().setHours(8, 30, 0, 0)),
-      duration: 60,
-      isCompleted: false,
-      priority: 'high',
-      categoryId: null,
-      category: { id: '2', name: 'Fitness', color: 'var(--task-green)', icon: null, createdAt: new Date(), updatedAt: new Date() },
-      date: new Date(),
-      order: 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '3',
-      title: 'Breakfast & Journal',
-      description: 'Have a healthy breakfast and write thoughts',
-      startTime: new Date(new Date().setHours(8, 30, 0, 0)),
-      endTime: new Date(new Date().setHours(9, 0, 0, 0)),
-      duration: 30,
-      isCompleted: false,
-      priority: 'low',
-      categoryId: null,
-      category: { id: '3', name: 'Personal', color: 'var(--task-orange)', icon: null, createdAt: new Date(), updatedAt: new Date() },
-      date: new Date(),
-      order: 2,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
 
-  const handleToggleComplete = (taskId: string, completed: boolean) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === taskId ? { ...task, isCompleted: completed } : task
-      )
-    );
-  };
+  // Use custom hooks for data fetching
+  const {
+    tasks,
+    isLoading: tasksLoading,
+    toggleComplete,
+    createTask,
+    updateTask,
+    deleteTask,
+    fetchTasks,
+  } = useTasks({ date: selectedDate });
+
+  const {
+    journalStreak,
+    longestStreak,
+    activeDays,
+  } = useStreaks();
+
+  const { prompt } = usePrompt();
+  const { createEntry } = useDiary({ autoFetch: false });
+
+  // Refetch tasks when selected date changes
+  useEffect(() => {
+    fetchTasks();
+  }, [selectedDate, fetchTasks]);
+
+  const handleToggleComplete = useCallback(async (taskId: string, completed: boolean) => {
+    await toggleComplete(taskId, completed);
+  }, [toggleComplete]);
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -89,65 +60,51 @@ const HomePage = () => {
     setIsTaskModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== taskId));
-  };
+  const handleDeleteTask = useCallback(async (taskId: string) => {
+    await deleteTask(taskId);
+  }, [deleteTask]);
 
-  const handleSaveTask = (formData: TaskFormData) => {
+  const handleSaveTask = useCallback(async (formData: TaskFormData) => {
     if (editingTask) {
       // Update existing task
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === editingTask.id
-            ? {
-                ...task,
-                ...formData,
-                startTime: formData.startTime
-                  ? new Date(`${selectedDate.toDateString()} ${formData.startTime}`)
-                  : null,
-                endTime: formData.endTime
-                  ? new Date(`${selectedDate.toDateString()} ${formData.endTime}`)
-                  : null,
-                updatedAt: new Date(),
-              }
-            : task
-        )
-      );
-    } else {
-      // Add new task
-      const newTask: Task = {
-        id: Date.now().toString(),
-        title: formData.title,
-        description: formData.description || null,
+      await updateTask(editingTask.id, {
+        ...formData,
         startTime: formData.startTime
           ? new Date(`${selectedDate.toDateString()} ${formData.startTime}`)
           : null,
         endTime: formData.endTime
           ? new Date(`${selectedDate.toDateString()} ${formData.endTime}`)
           : null,
-        duration: formData.duration || null,
-        isCompleted: false,
-        priority: formData.priority,
-        categoryId: formData.categoryId || null,
-        category: null,
+      });
+    } else {
+      // Add new task
+      await createTask({
+        ...formData,
         date: selectedDate,
-        order: tasks.length,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setTasks((prev) => [...prev, newTask]);
+      });
     }
     setIsTaskModalOpen(false);
     setEditingTask(null);
-  };
+  }, [editingTask, selectedDate, createTask, updateTask]);
 
-  const handleSaveJournal = async (content: string, mood?: MoodType) => {
-    console.log('Saving journal entry:', { content, mood });
-    // TODO: Implement API call to save journal entry
-  };
+  const handleSaveJournal = useCallback(async (content: string, mood?: MoodType) => {
+    const entry = await createEntry({
+      content,
+      mood,
+      prompt,
+    });
+    
+    if (entry) {
+      console.log('Journal entry saved:', entry);
+    }
+  }, [createEntry, prompt]);
 
   const greeting = getGreeting();
   const todayDate = formatDate(new Date(), 'full');
+
+  // Calculate completed tasks for progress
+  const completedTasks = tasks.filter(t => t.isCompleted).length;
+  const totalTasks = tasks.length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -194,7 +151,7 @@ const HomePage = () => {
 
               {/* Journal Card */}
               <JournalCard
-                prompt="I slow down to hear the flowers bloom and feel the gentle touch of the breeze."
+                prompt={prompt}
                 onSave={handleSaveJournal}
               />
             </div>
@@ -205,14 +162,20 @@ const HomePage = () => {
               <Sidebar
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
-                streak={1}
+                streak={journalStreak}
+                completedTasks={completedTasks}
+                totalTasks={totalTasks}
               />
 
               {/* Weather Widget */}
               <WeatherWidget />
 
               {/* Streak Widget */}
-              <StreakWidget streak={1} longestStreak={7} activeDays={[new Date()]} />
+              <StreakWidget 
+                streak={journalStreak} 
+                longestStreak={longestStreak} 
+                activeDays={activeDays} 
+              />
 
               {/* Daily Inspiration Card */}
               <Card variant="glass" padding="md">
