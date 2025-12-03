@@ -15,7 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { Header } from '@/components/layout';
-import { Card, Button, Input, TextArea } from '@/components/ui';
+import { Card, Button, Input, TextArea, Skeleton, SkeletonSettingsTab } from '@/components/ui';
 
 interface UserSettings {
   name: string;
@@ -89,17 +89,24 @@ const SettingsPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'notifications' | 'data'>('profile');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load settings from localStorage on mount
   useEffect(() => {
-    const storedSettings = localStorage.getItem('digital-diary-settings');
-    if (storedSettings) {
-      try {
-        setSettings(JSON.parse(storedSettings));
-      } catch (e) {
-        console.error('Failed to parse settings:', e);
+    const loadSettings = async () => {
+      setIsLoading(true);
+      const storedSettings = localStorage.getItem('digital-diary-settings');
+      if (storedSettings) {
+        try {
+          setSettings(JSON.parse(storedSettings));
+        } catch (e) {
+          console.error('Failed to parse settings:', e);
+        }
       }
-    }
+      // Simulate loading delay for better UX
+      setTimeout(() => setIsLoading(false), 500);
+    };
+    loadSettings();
   }, []);
 
   // Save settings
@@ -200,8 +207,12 @@ const SettingsPage = () => {
 
             {/* Tab Content */}
             <div className="lg:col-span-3">
-              {/* Profile Tab */}
-              {activeTab === 'profile' && (
+              {isLoading ? (
+                <SkeletonSettingsTab />
+              ) : (
+                <>
+                  {/* Profile Tab */}
+                  {activeTab === 'profile' && (
                 <Card variant="glass" padding="lg">
                   <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                     <User size={20} className="text-primary" />
@@ -440,6 +451,8 @@ const SettingsPage = () => {
                     </div>
                   </div>
                 </Card>
+              )}
+                </>
               )}
             </div>
           </div>

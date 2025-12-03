@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MapPin, Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer } from 'lucide-react';
+import { SkeletonWeatherWidget } from '@/components/ui';
 import type { WeatherData } from '@/types';
 
 interface WeatherWidgetProps {
@@ -55,9 +56,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, isLoading }) => 
   const displayWeather = weather || defaultWeather;
 
   if (isLoading) {
-    return (
-      <div className="rounded-2xl overflow-hidden h-48 bg-neutral-100 animate-pulse" />
-    );
+    return <SkeletonWeatherWidget />;
   }
 
   return (

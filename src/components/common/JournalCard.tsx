@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Sparkles, Clock, ThumbsUp, Heart, Share2, MapPin, PenLine } from 'lucide-react';
-import { Card, TextArea, Button } from '@/components/ui';
+import { Card, TextArea, Button, SkeletonJournalCard } from '@/components/ui';
 import type { MoodType } from '@/types';
 import { moodEmojis } from '@/lib/utils';
 
@@ -11,6 +11,7 @@ interface JournalCardProps {
   onSave: (content: string, mood?: MoodType) => void;
   initialContent?: string;
   initialMood?: MoodType;
+  isLoading?: boolean;
 }
 
 const JournalCard: React.FC<JournalCardProps> = ({
@@ -18,6 +19,7 @@ const JournalCard: React.FC<JournalCardProps> = ({
   onSave,
   initialContent = '',
   initialMood,
+  isLoading = false,
 }) => {
   const [content, setContent] = React.useState(initialContent);
   const [selectedMood, setSelectedMood] = React.useState<MoodType | undefined>(initialMood);
@@ -43,6 +45,10 @@ const JournalCard: React.FC<JournalCardProps> = ({
     minute: '2-digit',
     hour12: true,
   });
+
+  if (isLoading) {
+    return <SkeletonJournalCard />;
+  }
 
   return (
     <Card variant="glass" className="overflow-hidden">

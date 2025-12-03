@@ -2,19 +2,21 @@
 
 import React from 'react';
 import { Flame, Zap } from 'lucide-react';
-import { Card } from '@/components/ui';
+import { Card, SkeletonStreakWidget } from '@/components/ui';
 import { getCurrentWeekDates, isToday, isSameDay } from '@/lib/utils';
 
 interface StreakWidgetProps {
   streak: number;
   longestStreak?: number;
   activeDays?: Date[];
+  isLoading?: boolean;
 }
 
 const StreakWidget: React.FC<StreakWidgetProps> = ({
   streak = 1,
   longestStreak = 0,
   activeDays = [],
+  isLoading = false,
 }) => {
   const weekDates = getCurrentWeekDates();
   const weekDayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -24,6 +26,10 @@ const StreakWidget: React.FC<StreakWidgetProps> = ({
   const isDayActive = (date: Date) => {
     return activeDays.some((d) => isSameDay(d, date));
   };
+
+  if (isLoading) {
+    return <SkeletonStreakWidget />;
+  }
 
   return (
     <Card variant="glass" padding="md">

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, Calendar, Trash2, Edit3, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { Header } from '@/components/layout';
-import { Card, Button, Input, TextArea } from '@/components/ui';
+import { Card, Button, Input, TextArea, SkeletonEntryItem, Skeleton } from '@/components/ui';
 import { useDiary } from '@/hooks';
 import { formatDate, moodEmojis } from '@/lib/utils';
 import type { DiaryEntry, MoodType } from '@/types';
@@ -162,9 +162,24 @@ const JournalPage = () => {
               {/* Entries List */}
               <Card variant="glass" padding="lg">
                 {isLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-                    <p className="text-neutral-500">Loading entries...</p>
+                  <div className="space-y-6">
+                    {/* Skeleton for date header */}
+                    <div>
+                      <Skeleton variant="text" height={14} width={150} className="mb-3" />
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <SkeletonEntryItem key={i} />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Skeleton variant="text" height={14} width={150} className="mb-3" />
+                      <div className="space-y-3">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                          <SkeletonEntryItem key={i} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ) : filteredEntries.length === 0 ? (
                   <div className="text-center py-12">

@@ -4,7 +4,7 @@ import React from 'react';
 import { Plus, Calendar, Leaf } from 'lucide-react';
 import type { Task } from '@/types';
 import TaskItem from './TaskItem';
-import { Button } from '@/components/ui';
+import { Button, SkeletonTaskTimeline } from '@/components/ui';
 
 interface TaskTimelineProps {
   tasks: Task[];
@@ -12,6 +12,7 @@ interface TaskTimelineProps {
   onAddTask: () => void;
   onEditTask?: (task: Task) => void;
   onDeleteTask?: (taskId: string) => void;
+  isLoading?: boolean;
 }
 
 const TaskTimeline: React.FC<TaskTimelineProps> = ({
@@ -20,6 +21,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   onAddTask,
   onEditTask,
   onDeleteTask,
+  isLoading = false,
 }) => {
   // Sort tasks by start time
   const sortedTasks = [...tasks].sort((a, b) => {
@@ -30,6 +32,10 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   });
 
   const completedCount = sortedTasks.filter(t => t.isCompleted).length;
+
+  if (isLoading) {
+    return <SkeletonTaskTimeline count={3} />;
+  }
 
   return (
     <div className="space-y-1">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Calendar, CheckCircle2, Circle, ListTodo, Clock, Trash2, Edit3 } from 'lucide-react';
 import { Header } from '@/components/layout';
-import { Card, Button, Input, Badge } from '@/components/ui';
+import { Card, Button, Input, Badge, SkeletonStatsCard, SkeletonTaskItem, Skeleton } from '@/components/ui';
 import { TaskModal } from '@/components/common';
 import { useTasks } from '@/hooks';
 import { formatDate, formatTime, formatDuration, priorityColors } from '@/lib/utils';
@@ -154,50 +154,61 @@ const TasksPage = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card variant="glass" padding="md">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-task-blue/20 flex items-center justify-center">
-                  <ListTodo size={20} className="text-task-blue" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{tasks.length}</p>
-                  <p className="text-sm text-neutral-500">Total Tasks</p>
-                </div>
-              </div>
-            </Card>
-            <Card variant="glass" padding="md">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-task-green/20 flex items-center justify-center">
-                  <CheckCircle2 size={20} className="text-task-green" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{completedCount}</p>
-                  <p className="text-sm text-neutral-500">Completed</p>
-                </div>
-              </div>
-            </Card>
-            <Card variant="glass" padding="md">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-task-orange/20 flex items-center justify-center">
-                  <Circle size={20} className="text-task-orange" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
-                  <p className="text-sm text-neutral-500">Pending</p>
-                </div>
-              </div>
-            </Card>
-            <Card variant="glass" padding="md">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-task-purple/20 flex items-center justify-center">
-                  <Clock size={20} className="text-task-purple" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{formatDuration(totalDuration)}</p>
-                  <p className="text-sm text-neutral-500">Total Time</p>
-                </div>
-              </div>
-            </Card>
+            {isLoading ? (
+              <>
+                <SkeletonStatsCard />
+                <SkeletonStatsCard />
+                <SkeletonStatsCard />
+                <SkeletonStatsCard />
+              </>
+            ) : (
+              <>
+                <Card variant="glass" padding="md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-task-blue/20 flex items-center justify-center">
+                      <ListTodo size={20} className="text-task-blue" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{tasks.length}</p>
+                      <p className="text-sm text-neutral-500">Total Tasks</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card variant="glass" padding="md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-task-green/20 flex items-center justify-center">
+                      <CheckCircle2 size={20} className="text-task-green" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{completedCount}</p>
+                      <p className="text-sm text-neutral-500">Completed</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card variant="glass" padding="md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-task-orange/20 flex items-center justify-center">
+                      <Circle size={20} className="text-task-orange" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
+                      <p className="text-sm text-neutral-500">Pending</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card variant="glass" padding="md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-task-purple/20 flex items-center justify-center">
+                      <Clock size={20} className="text-task-purple" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{formatDuration(totalDuration)}</p>
+                      <p className="text-sm text-neutral-500">Total Time</p>
+                    </div>
+                  </div>
+                </Card>
+              </>
+            )}
           </div>
 
           {/* Date Navigation & Filters */}
@@ -266,9 +277,29 @@ const TasksPage = () => {
           {/* Tasks List */}
           <Card variant="glass" padding="lg">
             {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-                <p className="text-neutral-500">Loading tasks...</p>
+              <div className="space-y-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-xl border border-neutral-200 bg-white/30"
+                  >
+                    <div className="flex items-start gap-4">
+                      <Skeleton variant="circular" width={22} height={22} className="mt-0.5" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton variant="text" height={18} width="60%" />
+                        <Skeleton variant="text" height={14} width="80%" />
+                        <div className="flex gap-3 pt-1">
+                          <Skeleton variant="rounded" height={20} width={80} />
+                          <Skeleton variant="rounded" height={20} width={60} />
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredTasks.length === 0 ? (
               <div className="text-center py-12">

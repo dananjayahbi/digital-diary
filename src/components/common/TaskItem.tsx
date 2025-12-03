@@ -4,13 +4,14 @@ import React from 'react';
 import { MoreVertical, Clock, Zap } from 'lucide-react';
 import type { Task } from '@/types';
 import { formatTime, formatDuration } from '@/lib/utils';
-import { Checkbox } from '@/components/ui';
+import { Checkbox, SkeletonTaskItem } from '@/components/ui';
 
 interface TaskItemProps {
   task: Task;
   onToggleComplete: (taskId: string, completed: boolean) => void;
   onEdit?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
+  isLoading?: boolean;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({
@@ -18,6 +19,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   onToggleComplete,
   onEdit,
   onDelete,
+  isLoading = false,
 }) => {
   const [showMenu, setShowMenu] = React.useState(false);
 
@@ -34,6 +36,10 @@ const TaskItem: React.FC<TaskItemProps> = ({
   };
 
   const color = getCategoryColor();
+
+  if (isLoading) {
+    return <SkeletonTaskItem />;
+  }
 
   return (
     <div className="flex items-start gap-4 group animate-fadeIn">

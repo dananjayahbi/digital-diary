@@ -3,19 +3,26 @@
 import React from 'react';
 import Image from 'next/image';
 import { Leaf, Heart, Share2 } from 'lucide-react';
+import { SkeletonDailyCard } from '@/components/ui';
 
 interface DailyCardProps {
   imageUrl?: string;
   caption?: string;
   onClick?: () => void;
+  isLoading?: boolean;
 }
 
 const DailyCard: React.FC<DailyCardProps> = ({
   imageUrl = 'https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=400&h=500&fit=crop',
   caption = 'Find beauty in the ordinary moments of life.',
   onClick,
+  isLoading = false,
 }) => {
   const [isLiked, setIsLiked] = React.useState(false);
+
+  if (isLoading) {
+    return <SkeletonDailyCard />;
+  }
 
   return (
     <div

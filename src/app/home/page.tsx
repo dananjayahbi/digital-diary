@@ -11,7 +11,16 @@ import {
   StreakWidget,
   DailyCard,
 } from '@/components/common';
-import { Card } from '@/components/ui';
+import { 
+  Card, 
+  SkeletonTaskTimeline, 
+  SkeletonJournalCard, 
+  SkeletonSidebar, 
+  SkeletonWeatherWidget, 
+  SkeletonStreakWidget, 
+  SkeletonDailyCard,
+  Skeleton,
+} from '@/components/ui';
 import { formatDate, getGreeting } from '@/lib/utils';
 import { useTasks, useStreaks, usePrompt, useDiary } from '@/hooks';
 import type { Task, TaskFormData, MoodType } from '@/types';
@@ -36,9 +45,10 @@ const HomePage = () => {
     journalStreak,
     longestStreak,
     activeDays,
+    isLoading: streaksLoading,
   } = useStreaks();
 
-  const { prompt } = usePrompt();
+  const { prompt, isLoading: promptLoading } = usePrompt();
   const { createEntry } = useDiary({ autoFetch: false });
 
   // Refetch tasks when selected date changes
@@ -141,42 +151,58 @@ const HomePage = () => {
             <div className="flex-1 space-y-6">
               {/* Task Timeline */}
               <Card variant="glass" padding="lg">
-                <TaskTimeline
-                  tasks={tasks}
-                  onToggleComplete={handleToggleComplete}
-                  onAddTask={handleAddTask}
-                  onEditTask={handleEditTask}
-                  onDeleteTask={handleDeleteTask}
-                />
+                {tasksLoading ? (
+                  <SkeletonTaskTimeline count={3} />
+                ) : (
+                  <TaskTimeline
+                    tasks={tasks}
+                    onToggleComplete={handleToggleComplete}
+                    onAddTask={handleAddTask}
+                    onEditTask={handleEditTask}
+                    onDeleteTask={handleDeleteTask}
+                  />
+                )}
               </Card>
 
               {/* Journal Card */}
-              <JournalCard
-                prompt={prompt}
-                onSave={handleSaveJournal}
-              />
+              {promptLoading ? (
+                <SkeletonJournalCard />
+              ) : (
+                <JournalCard
+                  prompt={prompt}
+                  onSave={handleSaveJournal}
+                />
+              )}
             </div>
 
             {/* Right Column - Sidebar */}
             <div className="lg:w-80 space-y-6">
               {/* Calendar Sidebar */}
-              <Sidebar
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                streak={journalStreak}
-                completedTasks={completedTasks}
-                totalTasks={totalTasks}
-              />
+              {streaksLoading ? (
+                <SkeletonSidebar />
+              ) : (
+                <Sidebar
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  streak={journalStreak}
+                  completedTasks={completedTasks}
+                  totalTasks={totalTasks}
+                />
+              )}
 
               {/* Weather Widget */}
               <WeatherWidget />
 
               {/* Streak Widget */}
-              <StreakWidget 
-                streak={journalStreak} 
-                longestStreak={longestStreak} 
-                activeDays={activeDays} 
-              />
+              {streaksLoading ? (
+                <SkeletonStreakWidget />
+              ) : (
+                <StreakWidget 
+                  streak={journalStreak} 
+                  longestStreak={longestStreak} 
+                  activeDays={activeDays} 
+                />
+              )}
 
               {/* Daily Inspiration Card */}
               <Card variant="glass" padding="md">
