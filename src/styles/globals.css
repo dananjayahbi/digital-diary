@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tailwind v4 theme configuration */
+@theme {
+  /* Main colors */
+  --color-background: #f8fafb;
+  --color-foreground: #1a2a3a;
+  
+  /* Primary - Soft teal/sage */
+  --color-primary: #5b8a72;
+  --color-primary-light: #7da992;
+  --color-primary-dark: #3d6b54;
+  --color-primary-muted: rgb(91 138 114 / 0.1);
+  
+  /* Secondary - Warm beige */
+  --color-secondary: #e8ddd4;
+  --color-secondary-light: #f5f0ec;
+  --color-secondary-dark: #c9bdb3;
+  
+  /* Accent - Soft coral */
+  --color-accent: #e07a5f;
+  --color-accent-light: #f4a68c;
+  --color-accent-muted: rgb(224 122 95 / 0.15);
+  
+  /* Neutrals - using proper scale */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f4;
+  --color-neutral-200: #e7e5e4;
+  --color-neutral-300: #d6d3d1;
+  --color-neutral-400: #a8a29e;
+  --color-neutral-500: #78716c;
+  --color-neutral-600: #57534e;
+  --color-neutral-700: #44403c;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1c1917;
+  
+  /* Task colors */
+  --color-task-blue: #6b9ac4;
+  --color-task-purple: #9b8bc4;
+  --color-task-orange: #e5a855;
+  --color-task-pink: #d4849a;
+  --color-task-green: #7db59a;
+  --color-task-red: #d4726a;
+  
+  /* Fonts */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Base styles */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Smooth scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-neutral-300);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-neutral-400);
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    outline-width: 2px;
+    outline-color: var(--color-primary);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Background image container */
+@layer components {
+  .bg-nature {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  .bg-nature::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(248, 250, 251, 0.85) 0%,
+      rgba(248, 250, 251, 0.7) 50%,
+      rgba(248, 250, 251, 0.85) 100%
+    );
+  }
+
+  /* Timeline connector */
+  .timeline-connector {
+    position: absolute;
+    left: 24px;
+    top: 40px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--color-primary-light), transparent);
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.25s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Glass morphism - placed outside @layer for proper cascade */
+.glass {
+  background-color: rgb(255 255 255 / 0.7) !important;
+  border: 1px solid rgb(255 255 255 / 0.3) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+.glass-subtle {
+  background-color: rgb(255 255 255 / 0.5) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
 }

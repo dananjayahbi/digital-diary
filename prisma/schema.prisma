@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +8,89 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// User settings and preferences
+model UserSettings {
+  id                String   @id @default(cuid())
+  theme             String   @default("calm")
+  backgroundImage   String?
+  temperatureUnit   String   @default("celsius")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Categories for tasks (e.g., Work, Health, Personal)
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  color       String   @default("#3b82f6")
+  icon        String?
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Daily tasks with time blocks
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime?
+  endTime     DateTime?
+  duration    Int?      // Duration in minutes
+  isCompleted Boolean   @default(false)
+  priority    String    @default("medium") // low, medium, high
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  date        DateTime  @default(now())
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Journal/Diary entries
+model DiaryEntry {
+  id          String   @id @default(cuid())
+  title       String?
+  content     String   @db.Text
+  mood        String?  // happy, calm, neutral, sad, anxious
+  moodScore   Int?     // 1-5 scale
+  prompt      String?  // Daily prompt/quote
+  weather     String?
+  location    String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Streak tracking for daily habits
+model Streak {
+  id              String   @id @default(cuid())
+  type            String   // journal, tasks, etc.
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  lastActivityAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Daily prompts/quotes for inspiration
+model DailyPrompt {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  author    String?
+  category  String?  // motivation, reflection, gratitude
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// Background images for the app
+model BackgroundImage {
+  id          String   @id @default(cuid())
+  url         String
+  source      String?  // unsplash, pexels, etc.
+  category    String?  // nature, mountains, ocean, forest
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
