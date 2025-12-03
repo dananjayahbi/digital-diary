@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, Filter, Calendar, CheckCircle2, Circle, ListTodo, Clock, Trash2, Edit3 } from 'lucide-react';
 import { Header } from '@/components/layout';
 import { Card, Button, Input, Badge, SkeletonStatsCard, SkeletonTaskItem, Skeleton } from '@/components/ui';
@@ -12,6 +12,31 @@ import type { Task, TaskFormData } from '@/types';
 type FilterType = 'all' | 'completed' | 'pending' | 'today';
 type SortType = 'time' | 'priority' | 'created';
 
+// Current Time Marker Component for Tasks Page
+const CurrentTimeMarker: React.FC<{ time: Date }> = ({ time }) => {
+  const formattedTime = time.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  return (
+    <div className="flex items-center gap-4 my-2 animate-fadeIn">
+      {/* Current time indicator */}
+      <div className="relative flex items-center flex-1">
+        <div className="absolute left-0 w-3 h-3 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/30" />
+        <div className="ml-1.5 flex-1 h-0.5 bg-linear-to-r from-primary via-primary/50 to-transparent rounded-full" />
+      </div>
+
+      {/* Label */}
+      <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full flex items-center gap-1.5">
+        <Clock size={12} className="animate-pulse" />
+        {formattedTime} - Now
+      </span>
+    </div>
+  );
+};
+
 const TasksPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +45,15 @@ const TasksPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const {
     tasks,
@@ -32,46 +66,71 @@ const TasksPage = () => {
   } = useTasks({ date: selectedDate });
 
   // Filter and sort tasks
-  const filteredTasks = tasks
-    .filter(task => {
-      // Search filter
-      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Status filter
-      let matchesFilter = true;
-      switch (filterType) {
-        case 'completed':
-          matchesFilter = task.isCompleted;
+  const filteredTasks = useMemo(() => {
+    return tasks
+      .filter(task => {
+        // Search filter
+        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        // Status filter
+        let matchesFilter = true;
+        switch (filterType) {
+          case 'completed':
+            matchesFilter = task.isCompleted;
+            break;
+          case 'pending':
+            matchesFilter = !task.isCompleted;
+            break;
+          case 'today':
+            const today = new Date();
+            const taskDate = new Date(task.date);
+            matchesFilter = taskDate.toDateString() === today.toDateString();
+            break;
+        }
+        
+        return matchesSearch && matchesFilter;
+      })
+      .sort((a, b) => {
+        switch (sortType) {
+          case 'time':
+            if (!a.startTime && !b.startTime) return 0;
+            if (!a.startTime) return 1;
+            if (!b.startTime) return -1;
+            return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+          case 'priority':
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+          case 'created':
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          default:
+            return 0;
+        }
+      });
+  }, [tasks, searchQuery, filterType, sortType]);
+
+  // Check if selected date is today (to show current time marker)
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+
+  // Find where to insert the current time marker
+  const currentTimeIndex = useMemo(() => {
+    if (!isToday || sortType !== 'time') return -1;
+    
+    const now = currentTime.getTime();
+    let insertIndex = filteredTasks.length;
+
+    for (let i = 0; i < filteredTasks.length; i++) {
+      const task = filteredTasks[i];
+      if (task.startTime) {
+        const taskTime = new Date(task.startTime).getTime();
+        if (taskTime > now) {
+          insertIndex = i;
           break;
-        case 'pending':
-          matchesFilter = !task.isCompleted;
-          break;
-        case 'today':
-          const today = new Date();
-          const taskDate = new Date(task.date);
-          matchesFilter = taskDate.toDateString() === today.toDateString();
-          break;
+        }
       }
-      
-      return matchesSearch && matchesFilter;
-    })
-    .sort((a, b) => {
-      switch (sortType) {
-        case 'time':
-          if (!a.startTime && !b.startTime) return 0;
-          if (!a.startTime) return 1;
-          if (!b.startTime) return -1;
-          return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-        case 'priority':
-          const priorityOrder = { high: 0, medium: 1, low: 2 };
-          return priorityOrder[a.priority] - priorityOrder[b.priority];
-        case 'created':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        default:
-          return 0;
-      }
-    });
+    }
+    return insertIndex;
+  }, [filteredTasks, currentTime, isToday, sortType]);
 
   const handleToggleComplete = async (taskId: string, completed: boolean) => {
     await toggleComplete(taskId, completed);
@@ -316,15 +375,19 @@ const TasksPage = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`p-4 rounded-xl border transition-all ${
-                      task.isCompleted
-                        ? 'border-neutral-200 bg-neutral-50 opacity-70'
-                        : 'border-neutral-200 hover:border-primary-light hover:bg-white'
-                    }`}
-                  >
+                {filteredTasks.map((task, index) => (
+                  <React.Fragment key={task.id}>
+                    {/* Insert current time marker at the correct position */}
+                    {isToday && sortType === 'time' && index === currentTimeIndex && (
+                      <CurrentTimeMarker time={currentTime} />
+                    )}
+                    <div
+                      className={`p-4 rounded-xl border transition-all ${
+                        task.isCompleted
+                          ? 'border-neutral-200 bg-neutral-50 opacity-70'
+                          : 'border-neutral-200 hover:border-primary-light hover:bg-white'
+                      }`}
+                    >
                     <div className="flex items-start gap-4">
                       {/* Checkbox */}
                       <button
@@ -392,7 +455,12 @@ const TasksPage = () => {
                       </div>
                     </div>
                   </div>
+                  </React.Fragment>
                 ))}
+                {/* If current time is after all tasks, show marker at the end */}
+                {isToday && sortType === 'time' && currentTimeIndex === filteredTasks.length && filteredTasks.length > 0 && (
+                  <CurrentTimeMarker time={currentTime} />
+                )}
               </div>
             )}
           </Card>

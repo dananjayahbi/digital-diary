@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { Check } from 'lucide-react';
 
 interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -10,7 +10,8 @@ interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className = '', label, color, id, checked, ...props }, ref) => {
-    const checkboxId = id || label?.toLowerCase().replace(/\s+/g, '-') || 'checkbox';
+    const generatedId = useId();
+    const checkboxId = id || (label?.toLowerCase().replace(/\s+/g, '-')) || generatedId;
     const borderColor = color || 'var(--neutral-300)';
     const bgColor = color || 'var(--primary)';
 

@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Plus, Calendar, Leaf } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Calendar, Leaf, Clock } from 'lucide-react';
 import type { Task } from '@/types';
 import TaskItem from './TaskItem';
 import { Button, SkeletonTaskTimeline } from '@/components/ui';
@@ -13,7 +13,38 @@ interface TaskTimelineProps {
   onEditTask?: (task: Task) => void;
   onDeleteTask?: (taskId: string) => void;
   isLoading?: boolean;
+  showCurrentTimeLine?: boolean;
 }
+
+// Current Time Marker Component
+const CurrentTimeMarker: React.FC<{ time: Date }> = ({ time }) => {
+  const formattedTime = time.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  return (
+    <div className="flex items-center gap-4 my-3 animate-fadeIn">
+      {/* Time */}
+      <div className="w-16 shrink-0 text-sm text-primary font-medium flex items-center gap-1">
+        <Clock size={12} className="text-primary animate-pulse" />
+        {formattedTime}
+      </div>
+
+      {/* Current time indicator */}
+      <div className="relative flex items-center flex-1">
+        <div className="absolute left-0 w-3 h-3 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/30" />
+        <div className="ml-1.5 flex-1 h-0.5 bg-linear-to-r from-primary via-primary/50 to-transparent rounded-full" />
+      </div>
+
+      {/* Label */}
+      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+        Now
+      </span>
+    </div>
+  );
+};
 
 const TaskTimeline: React.FC<TaskTimelineProps> = ({
   tasks,
@@ -22,14 +53,48 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   onEditTask,
   onDeleteTask,
   isLoading = false,
+  showCurrentTimeLine = true,
 }) => {
-  // Sort tasks by start time
-  const sortedTasks = [...tasks].sort((a, b) => {
-    if (!a.startTime && !b.startTime) return 0;
-    if (!a.startTime) return 1;
-    if (!b.startTime) return -1;
-    return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-  });
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Sort tasks by start time - closest upcoming tasks first
+  const sortedTasks = useMemo(() => {
+    return [...tasks].sort((a, b) => {
+      if (!a.startTime && !b.startTime) return 0;
+      if (!a.startTime) return 1;
+      if (!b.startTime) return -1;
+      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+    });
+  }, [tasks]);
+
+  // Find where to insert the current time marker
+  const currentTimeIndex = useMemo(() => {
+    if (!showCurrentTimeLine) return -1;
+    
+    const now = currentTime.getTime();
+    let insertIndex = sortedTasks.length; // Default to end
+
+    for (let i = 0; i < sortedTasks.length; i++) {
+      const task = sortedTasks[i];
+      if (task.startTime) {
+        const taskTime = new Date(task.startTime).getTime();
+        if (taskTime > now) {
+          insertIndex = i;
+          break;
+        }
+      }
+    }
+    return insertIndex;
+  }, [sortedTasks, currentTime, showCurrentTimeLine]);
 
   const completedCount = sortedTasks.filter(t => t.isCompleted).length;
 
@@ -77,15 +142,24 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
         </div>
       ) : (
         <div className="space-y-2">
-          {sortedTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onToggleComplete={onToggleComplete}
-              onEdit={onEditTask}
-              onDelete={onDeleteTask}
-            />
+          {sortedTasks.map((task, index) => (
+            <React.Fragment key={task.id}>
+              {/* Insert current time marker at the correct position */}
+              {showCurrentTimeLine && index === currentTimeIndex && (
+                <CurrentTimeMarker time={currentTime} />
+              )}
+              <TaskItem
+                task={task}
+                onToggleComplete={onToggleComplete}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+              />
+            </React.Fragment>
           ))}
+          {/* If current time is after all tasks, show marker at the end */}
+          {showCurrentTimeLine && currentTimeIndex === sortedTasks.length && sortedTasks.length > 0 && (
+            <CurrentTimeMarker time={currentTime} />
+          )}
         </div>
       )}
     </div>
