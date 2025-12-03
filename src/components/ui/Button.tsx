@@ -4,7 +4,7 @@ import React from 'react';
 import { LucideIcon } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   icon?: LucideIcon;
   iconPosition?: 'left' | 'right';
@@ -39,6 +39,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         'bg-transparent text-foreground hover:bg-neutral-100 focus:ring-neutral-200 active:scale-98',
       danger:
         'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 active:scale-98',
+      outline:
+        'bg-transparent text-foreground border border-neutral-300 hover:bg-neutral-50 focus:ring-neutral-200 active:scale-98',
     };
 
     const sizes = {
