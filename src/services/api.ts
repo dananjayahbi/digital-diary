@@ -47,7 +47,13 @@ export const tasksApi = {
     return fetchApi<Task>('/tasks', {
       method: 'POST',
       body: JSON.stringify({
-        ...data,
+        title: data.title,
+        description: data.description,
+        startTime: data.startTime || null,
+        endTime: data.endTime || null,
+        duration: data.duration,
+        priority: data.priority,
+        categoryId: data.categoryId,
         date: data.date?.toISOString(),
       }),
     });

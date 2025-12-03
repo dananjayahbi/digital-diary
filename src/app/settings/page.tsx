@@ -131,15 +131,7 @@ const SettingsPage = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Nature Background */}
-      <div
-        className="bg-nature"
-        style={{
-          backgroundImage: `url('${settings.backgroundImage}')`,
-        }}
-      />
-
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">

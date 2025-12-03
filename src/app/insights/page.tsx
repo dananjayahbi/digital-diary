@@ -97,15 +97,7 @@ const InsightsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Nature Background */}
-      <div
-        className="bg-nature"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80')`,
-        }}
-      />
-
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">

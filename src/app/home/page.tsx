@@ -65,21 +65,30 @@ const HomePage = () => {
   }, [deleteTask]);
 
   const handleSaveTask = useCallback(async (formData: TaskFormData) => {
+    // Helper to convert time string to ISO date string
+    const timeToISOString = (timeStr: string | undefined): string | undefined => {
+      if (!timeStr) return undefined;
+      const dateStr = selectedDate.toISOString().split('T')[0]; // Get YYYY-MM-DD
+      return new Date(`${dateStr}T${timeStr}:00`).toISOString();
+    };
+
     if (editingTask) {
       // Update existing task
       await updateTask(editingTask.id, {
         ...formData,
         startTime: formData.startTime
-          ? new Date(`${selectedDate.toDateString()} ${formData.startTime}`)
+          ? new Date(`${selectedDate.toISOString().split('T')[0]}T${formData.startTime}:00`)
           : null,
         endTime: formData.endTime
-          ? new Date(`${selectedDate.toDateString()} ${formData.endTime}`)
+          ? new Date(`${selectedDate.toISOString().split('T')[0]}T${formData.endTime}:00`)
           : null,
       });
     } else {
-      // Add new task
+      // Add new task - convert time strings to proper format
       await createTask({
         ...formData,
+        startTime: timeToISOString(formData.startTime),
+        endTime: timeToISOString(formData.endTime),
         date: selectedDate,
       });
     }
@@ -108,17 +117,6 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen relative">
-      {/* Clean Nature Background - Green forest/nature */}
-      <div
-        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg')`,
-        }}
-      >
-        {/* Light overlay for readability */}
-        <div className="absolute inset-0 bg-white/10" />
-      </div>
-
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">

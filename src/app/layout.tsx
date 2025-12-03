@@ -28,8 +28,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
+        {/* Global Background Image */}
+        <div
+          className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg')`,
+          }}
+        >
+          {/* Light overlay for readability */}
+          <div className="absolute inset-0 bg-white/10" />
+        </div>
         {children}
       </body>
     </html>

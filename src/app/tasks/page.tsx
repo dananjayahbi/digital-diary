@@ -131,15 +131,7 @@ const TasksPage = () => {
   const totalDuration = tasks.reduce((sum, t) => sum + (t.duration || 0), 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Nature Background */}
-      <div
-        className="bg-nature"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1920&q=80')`,
-        }}
-      />
-
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">

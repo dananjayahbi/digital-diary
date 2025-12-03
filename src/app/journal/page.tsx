@@ -121,15 +121,7 @@ const JournalPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Nature Background */}
-      <div
-        className="bg-nature"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80')`,
-        }}
-      />
-
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
