@@ -21,12 +21,25 @@ const TaskModal: React.FC<TaskModalProps> = ({
   isEditing = false,
 }) => {
   const [formData, setFormData] = React.useState<TaskFormData>({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    startTime: initialData?.startTime || '',
-    endTime: initialData?.endTime || '',
-    priority: initialData?.priority || 'medium',
+    title: '',
+    description: '',
+    startTime: '',
+    endTime: '',
+    priority: 'medium',
   });
+
+  // Reset form data when modal opens/closes or initialData changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        title: initialData?.title || '',
+        description: initialData?.description || '',
+        startTime: initialData?.startTime || '',
+        endTime: initialData?.endTime || '',
+        priority: initialData?.priority || 'medium',
+      });
+    }
+  }, [isOpen, initialData]);
 
   const priorities: Array<{ value: 'low' | 'medium' | 'high'; label: string; color: string }> = [
     { value: 'low', label: 'Low', color: 'var(--task-green)' },

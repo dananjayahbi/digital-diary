@@ -44,35 +44,77 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   }, [date]);
 
   const createTask = useCallback(async (data: TaskFormData): Promise<Task | null> => {
+    // Create optimistic task with temporary ID
+    const tempId = `temp-${Date.now()}`;
+    const optimisticTask: Task = {
+      id: tempId,
+      title: data.title,
+      description: data.description || null,
+      isCompleted: false,
+      priority: data.priority || 'medium',
+      startTime: data.startTime ? new Date(data.startTime) : null,
+      endTime: data.endTime ? new Date(data.endTime) : null,
+      duration: null,
+      date: date || new Date(),
+      category: null,
+      categoryId: null,
+      order: tasks.length, // Add order based on current task count
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Optimistic update - add task immediately
+    setTasks((prev) => [...prev, optimisticTask]);
+
     try {
       const newTask = await tasksApi.create({
         ...data,
         date: date || new Date(),
       });
-      setTasks((prev) => [...prev, newTask]);
+      // Replace optimistic task with real task from server
+      setTasks((prev) =>
+        prev.map((task) => (task.id === tempId ? newTask : task))
+      );
       return newTask;
     } catch (err) {
+      // Revert on error - remove optimistic task
+      setTasks((prev) => prev.filter((task) => task.id !== tempId));
       const message = err instanceof Error ? err.message : 'Failed to create task';
       setError(message);
       console.error('Error creating task:', err);
       return null;
     }
-  }, [date]);
+  }, [date, tasks.length]);
 
   const updateTask = useCallback(async (id: string, data: Partial<Task>): Promise<Task | null> => {
+    // Store original task for potential rollback
+    const originalTask = tasks.find((t) => t.id === id);
+    
+    // Optimistic update
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, ...data, updatedAt: new Date() } : task))
+    );
+
     try {
       const updatedTask = await tasksApi.update(id, data);
+      // Replace with server response
       setTasks((prev) =>
         prev.map((task) => (task.id === id ? updatedTask : task))
       );
       return updatedTask;
     } catch (err) {
+      // Revert on error
+      if (originalTask) {
+        setTasks((prev) =>
+          prev.map((task) => (task.id === id ? originalTask : task))
+        );
+      }
       const message = err instanceof Error ? err.message : 'Failed to update task';
       setError(message);
       console.error('Error updating task:', err);
       return null;
     }
-  }, []);
+  }, [tasks]);
 
   const toggleComplete = useCallback(async (id: string, isCompleted: boolean): Promise<void> => {
     // Optimistic update
