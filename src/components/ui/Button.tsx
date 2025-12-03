@@ -28,22 +28,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+      'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
       primary:
-        'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
+        'bg-gradient-to-r from-primary to-primary-dark text-white hover:shadow-lg hover:shadow-primary/30 focus:ring-primary active:scale-95',
       secondary:
-        'bg-secondary text-foreground hover:bg-secondary-dark focus:ring-secondary',
+        'bg-secondary/80 text-foreground hover:bg-secondary border border-white/10 focus:ring-secondary active:scale-95',
       ghost:
-        'bg-transparent text-foreground hover:bg-primary-muted focus:ring-primary',
+        'bg-transparent text-foreground hover:bg-white/10 focus:ring-primary/50 active:scale-95',
       danger:
-        'bg-task-red text-white hover:opacity-90 focus:ring-task-red',
+        'bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg hover:shadow-red-500/30 focus:ring-red-500 active:scale-95',
     };
 
     const sizes = {
       sm: 'px-3 py-1.5 text-sm',
-      md: 'px-4 py-2 text-sm',
+      md: 'px-4 py-2.5 text-sm',
       lg: 'px-6 py-3 text-base',
     };
 

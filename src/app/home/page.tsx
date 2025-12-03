@@ -108,28 +108,28 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nature Background */}
+      {/* Dramatic Nature Background - Sunset over ocean */}
       <div
         className="bg-nature"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80')`,
+          backgroundImage: `url('https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg')`,
         }}
       />
 
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
-        <div className="w-full">
+        <div className="w-full max-w-7xl mx-auto">
           {/* Greeting Section */}
           <div className="mb-8 animate-fadeIn">
-            <div className="flex items-center gap-2 text-neutral-500 mb-1">
-              <Sun size={18} className="text-accent" />
-              <span className="text-sm">{todayDate}</span>
+            <div className="flex items-center gap-2 text-neutral-400 mb-2">
+              <Sun size={18} className="text-secondary" />
+              <span className="text-sm font-medium">{todayDate}</span>
             </div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {greeting}, <span className="text-primary">there</span>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+              {greeting}, <span className="text-gradient">there</span>
             </h1>
-            <p className="text-neutral-500 mt-1">
+            <p className="text-neutral-400 mt-2 text-lg">
               Let&apos;s make today meaningful and productive
             </p>
           </div>

@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
+  CheckCircle2,
 } from 'lucide-react';
 import { isToday, isSameDay, getCalendarDates } from '@/lib/utils';
 
@@ -45,19 +46,24 @@ const Sidebar: React.FC<SidebarProps> = ({
     });
   };
 
+  const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
   return (
     <aside className="w-full lg:w-80 shrink-0">
       <div className="glass rounded-2xl p-5 space-y-6">
         {/* Streak Display */}
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-accent/10 to-task-orange/10 rounded-xl">
-          <div>
-            <p className="text-sm text-neutral-500">Current Streak</p>
-            <p className="text-2xl font-bold text-accent">
-              {streak} {streak === 1 ? 'Day' : 'Days'}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-            <Flame size={24} className="text-accent" />
+        <div className="relative overflow-hidden p-4 rounded-xl bg-gradient-to-r from-accent/20 via-secondary/10 to-primary/20">
+          <div className="absolute inset-0 animate-shimmer" />
+          <div className="relative flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-400 mb-1">Current Streak</p>
+              <p className="text-3xl font-bold text-gradient">
+                {streak} <span className="text-lg font-normal text-neutral-300">{streak === 1 ? 'Day' : 'Days'}</span>
+              </p>
+            </div>
+            <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center border border-accent/30">
+              <Flame size={28} className="text-accent" />
+            </div>
           </div>
         </div>
 
@@ -66,14 +72,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => navigateMonth('prev')}
-              className="p-1.5 rounded-lg hover:bg-primary-muted transition-colors"
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors text-neutral-400 hover:text-white"
             >
               <ChevronLeft size={18} />
             </button>
-            <span className="font-semibold text-sm">{formatMonthYear(viewDate)}</span>
+            <span className="font-semibold text-sm text-neutral-200">{formatMonthYear(viewDate)}</span>
             <button
               onClick={() => navigateMonth('next')}
-              className="p-1.5 rounded-lg hover:bg-primary-muted transition-colors"
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors text-neutral-400 hover:text-white"
             >
               <ChevronRight size={18} />
             </button>
@@ -84,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {weekDays.map((day) => (
               <div
                 key={day}
-                className="text-center text-xs font-medium text-neutral-400 py-1"
+                className="text-center text-xs font-medium text-neutral-500 py-1"
               >
                 {day}
               </div>
@@ -103,10 +109,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={index}
                   onClick={() => onDateSelect(date)}
                   className={`
-                    aspect-square flex items-center justify-center text-sm rounded-lg transition-all
-                    ${!isCurrentMonth ? 'text-neutral-300' : 'text-foreground'}
-                    ${isTodayDate && !isSelected ? 'font-bold text-primary' : ''}
-                    ${isSelected ? 'bg-primary text-white font-semibold' : 'hover:bg-primary-muted'}
+                    aspect-square flex items-center justify-center text-sm rounded-lg transition-all duration-200
+                    ${!isCurrentMonth ? 'text-neutral-600' : 'text-neutral-300'}
+                    ${isTodayDate && !isSelected ? 'font-bold text-primary ring-1 ring-primary/50' : ''}
+                    ${isSelected 
+                      ? 'bg-gradient-to-br from-primary to-primary-dark text-white font-semibold shadow-lg shadow-primary/30' 
+                      : 'hover:bg-white/10'
+                    }
                   `}
                 >
                   {date.getDate()}
@@ -117,19 +126,27 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Quick Stats */}
-        <div className="pt-4 border-t border-neutral-200">
-          <h4 className="text-sm font-semibold mb-3 text-neutral-500">Today&apos;s Progress</h4>
-          <div className="space-y-2">
+        <div className="pt-4 border-t border-white/10">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={16} className="text-primary" />
+            <h4 className="text-sm font-semibold text-neutral-300">Today&apos;s Progress</h4>
+          </div>
+          <div className="space-y-3">
             <div className="flex justify-between items-center text-sm">
-              <span>Tasks Completed</span>
+              <span className="text-neutral-400">Tasks Completed</span>
               <span className="font-semibold text-primary">{completedTasks}/{totalTasks}</span>
             </div>
-            <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: totalTasks > 0 ? `${(completedTasks / totalTasks) * 100}%` : '0%' }}
+                className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-primary via-accent to-secondary"
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
+            {progressPercent === 100 && totalTasks > 0 && (
+              <p className="text-xs text-center text-task-green animate-fadeIn">
+                🎉 All tasks completed!
+              </p>
+            )}
           </div>
         </div>
       </div>

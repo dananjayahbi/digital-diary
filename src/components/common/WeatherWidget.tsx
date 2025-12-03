@@ -3,7 +3,6 @@
 import React from 'react';
 import { MapPin, Cloud, Sun, CloudRain, CloudSnow, Wind, Droplets, Thermometer } from 'lucide-react';
 import type { WeatherData } from '@/types';
-import { Card } from '@/components/ui';
 
 interface WeatherWidgetProps {
   weather?: WeatherData | null;
@@ -14,8 +13,8 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, isLoading }) => 
   const [unit, setUnit] = React.useState<'C' | 'F'>('C');
 
   const getWeatherIcon = (condition: string) => {
-    const iconSize = 48;
-    const iconProps = { size: iconSize, className: 'text-white drop-shadow-lg' };
+    const iconSize = 56;
+    const iconProps = { size: iconSize, className: 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' };
     
     switch (condition?.toLowerCase()) {
       case 'sunny':
@@ -31,7 +30,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, isLoading }) => 
       case 'snow':
         return <CloudSnow {...iconProps} />;
       default:
-        return <Sun {...iconProps} />;
+        return <Cloud {...iconProps} />;
     }
   };
 
@@ -49,7 +48,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, isLoading }) => 
     humidity: 55,
     windSpeed: 15,
     feelsLike: 24,
-    location: 'Your Location',
+    location: 'New York',
     icon: 'cloudy',
   };
 
@@ -57,74 +56,80 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weather, isLoading }) => 
 
   if (isLoading) {
     return (
-      <Card variant="glass" className="overflow-hidden">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 w-24 bg-neutral-200 rounded" />
-          <div className="h-12 w-32 bg-neutral-200 rounded" />
-          <div className="flex gap-4">
-            <div className="h-4 w-16 bg-neutral-200 rounded" />
-            <div className="h-4 w-16 bg-neutral-200 rounded" />
-          </div>
-        </div>
-      </Card>
+      <div className="relative rounded-2xl overflow-hidden h-64">
+        <div className="absolute inset-0 bg-neutral-800 animate-pulse" />
+      </div>
     );
   }
 
   return (
-    <Card
-      variant="glass"
-      padding="none"
-      className="overflow-hidden relative"
-    >
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-task-blue/80 to-primary/80" />
+    <div className="relative rounded-2xl overflow-hidden group">
+      {/* Dramatic cloud background image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800&q=80')`,
+        }}
+      />
       
-      <div className="relative p-5 text-white">
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+      
+      {/* Content */}
+      <div className="relative p-6 text-white min-h-[280px] flex flex-col">
         {/* Location & Unit Toggle */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1.5">
-            <MapPin size={14} />
-            <span className="text-sm font-medium">{displayWeather.location}</span>
+        <div className="flex items-center justify-between mb-auto">
+          <div className="flex items-center gap-2">
+            <MapPin size={16} className="text-primary-light" />
+            <span className="text-sm font-medium text-neutral-200">{displayWeather.location}</span>
           </div>
           <button
             onClick={() => setUnit(unit === 'C' ? 'F' : 'C')}
-            className="text-xs px-2 py-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            className="text-xs px-3 py-1.5 rounded-full glass-subtle hover:bg-white/20 transition-all duration-300"
           >
-            °{unit === 'C' ? 'C' : 'F'} / °{unit === 'C' ? 'F' : 'C'}
+            °C / °F
           </button>
         </div>
 
-        {/* Temperature & Icon */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-5xl font-light">
-              {convertTemp(displayWeather.temperature)}°{unit}
-            </div>
-            <div className="text-sm opacity-90 mt-1">{displayWeather.condition}</div>
+        {/* Temperature & Condition - Centered */}
+        <div className="flex flex-col items-center justify-center py-6">
+          <div className="text-7xl font-extralight tracking-tight mb-1">
+            {convertTemp(displayWeather.temperature)}°{unit}
           </div>
+          <div className="text-lg text-neutral-300 font-light">{displayWeather.condition}</div>
+        </div>
+
+        {/* Weather Icon - Floating */}
+        <div className="absolute top-6 right-6 animate-float">
           {getWeatherIcon(displayWeather.condition)}
         </div>
 
-        {/* Details */}
-        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-white/20">
-          <div className="text-center">
-            <Droplets size={16} className="mx-auto mb-1 opacity-80" />
-            <div className="text-xs opacity-80">Humidity</div>
-            <div className="text-sm font-medium">{displayWeather.humidity}%</div>
+        {/* Details - Bottom */}
+        <div className="flex justify-between items-center pt-4 border-t border-white/10 mt-auto">
+          <div className="flex items-center gap-2">
+            <Droplets size={16} className="text-primary-light opacity-80" />
+            <div>
+              <div className="text-xs text-neutral-400">Humidity</div>
+              <div className="text-sm font-semibold">{displayWeather.humidity}%</div>
+            </div>
           </div>
-          <div className="text-center">
-            <Wind size={16} className="mx-auto mb-1 opacity-80" />
-            <div className="text-xs opacity-80">Wind</div>
-            <div className="text-sm font-medium">{displayWeather.windSpeed} km/h</div>
+          <div className="flex items-center gap-2">
+            <Wind size={16} className="text-primary-light opacity-80" />
+            <div>
+              <div className="text-xs text-neutral-400">Wind</div>
+              <div className="text-sm font-semibold">{displayWeather.windSpeed} km/h</div>
+            </div>
           </div>
-          <div className="text-center">
-            <Thermometer size={16} className="mx-auto mb-1 opacity-80" />
-            <div className="text-xs opacity-80">Feels Like</div>
-            <div className="text-sm font-medium">{convertTemp(displayWeather.feelsLike)}°{unit}</div>
+          <div className="flex items-center gap-2">
+            <Thermometer size={16} className="text-primary-light opacity-80" />
+            <div>
+              <div className="text-xs text-neutral-400">Feels Like</div>
+              <div className="text-sm font-semibold">{convertTemp(displayWeather.feelsLike)}°{unit}</div>
+            </div>
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

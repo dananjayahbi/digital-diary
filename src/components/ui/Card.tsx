@@ -5,9 +5,10 @@ import React from 'react';
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  variant?: 'default' | 'glass' | 'elevated';
+  variant?: 'default' | 'glass' | 'glass-dark' | 'elevated' | 'gradient';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hover?: boolean;
+  glow?: boolean;
   onClick?: () => void;
 }
 
@@ -17,14 +18,17 @@ const Card: React.FC<CardProps> = ({
   variant = 'default',
   padding = 'md',
   hover = false,
+  glow = false,
   onClick,
 }) => {
-  const baseStyles = 'rounded-2xl transition-all duration-200';
+  const baseStyles = 'rounded-2xl transition-all duration-300';
 
   const variants = {
-    default: 'bg-white dark:bg-neutral-100 border border-neutral-200',
+    default: 'bg-neutral-800/50 border border-neutral-700/50',
     glass: 'glass',
-    elevated: 'bg-white dark:bg-neutral-100 shadow-lg',
+    'glass-dark': 'glass-dark',
+    elevated: 'bg-neutral-800/80 shadow-2xl shadow-black/20',
+    gradient: 'border-gradient bg-neutral-900/60',
   };
 
   const paddings = {
@@ -35,12 +39,14 @@ const Card: React.FC<CardProps> = ({
   };
 
   const hoverStyles = hover
-    ? 'cursor-pointer hover:shadow-lg hover:-translate-y-1 active:translate-y-0'
+    ? 'cursor-pointer card-hover'
     : '';
+
+  const glowStyles = glow ? 'animate-glow' : '';
 
   return (
     <div
-      className={`${baseStyles} ${variants[variant]} ${paddings[padding]} ${hoverStyles} ${className}`}
+      className={`${baseStyles} ${variants[variant]} ${paddings[padding]} ${hoverStyles} ${glowStyles} ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
