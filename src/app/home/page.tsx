@@ -119,7 +119,7 @@ const HomePage = () => {
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           {/* Greeting Section */}
           <div className="mb-8 animate-fadeIn">
             <div className="flex items-center gap-2 text-neutral-500 mb-1">
