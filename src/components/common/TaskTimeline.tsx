@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus, Calendar, Sparkles } from 'lucide-react';
+import { Plus, Calendar, Leaf } from 'lucide-react';
 import type { Task } from '@/types';
 import TaskItem from './TaskItem';
 import { Button } from '@/components/ui';
@@ -33,9 +33,9 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
+          <div className="p-2 rounded-xl bg-primary-muted">
             <Calendar size={20} className="text-primary" />
           </div>
           <div>
@@ -50,19 +50,19 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
           size="sm"
           icon={Plus}
           onClick={onAddTask}
-          className="glass-subtle hover:bg-white/20"
+          className="hover:bg-primary-muted"
         >
           Add Task
         </Button>
       </div>
 
       {sortedTasks.length === 0 ? (
-        <div className="text-center py-16 glass rounded-2xl animate-fadeIn">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center animate-float">
-            <Sparkles size={32} className="text-primary" />
+        <div className="text-center py-12 bg-neutral-50 rounded-2xl animate-fadeIn">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-muted flex items-center justify-center">
+            <Leaf size={28} className="text-primary" />
           </div>
-          <h4 className="font-semibold text-foreground text-lg mb-2">No tasks yet</h4>
-          <p className="text-sm text-neutral-400 mb-6 max-w-xs mx-auto">
+          <h4 className="font-semibold text-foreground mb-1">No tasks yet</h4>
+          <p className="text-sm text-neutral-500 mb-4">
             Start your productive day by adding your first task
           </p>
           <Button variant="primary" size="sm" icon={Plus} onClick={onAddTask}>
@@ -70,20 +70,15 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
           </Button>
         </div>
       ) : (
-        <div className="space-y-3">
-          {sortedTasks.map((task, index) => (
-            <div 
-              key={task.id} 
-              className="animate-slideIn"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <TaskItem
-                task={task}
-                onToggleComplete={onToggleComplete}
-                onEdit={onEditTask}
-                onDelete={onDeleteTask}
-              />
-            </div>
+        <div className="space-y-2">
+          {sortedTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onToggleComplete={onToggleComplete}
+              onEdit={onEditTask}
+              onDelete={onDeleteTask}
+            />
           ))}
         </div>
       )}

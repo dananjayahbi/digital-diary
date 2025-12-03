@@ -36,20 +36,19 @@ const StreakWidget: React.FC<StreakWidgetProps> = ({
 
           return (
             <div key={index} className="flex flex-col items-center gap-1.5">
-              <span className="text-xs text-neutral-500 font-medium">
+              <span className="text-xs text-neutral-400 font-medium">
                 {weekDayLabels[index]}
               </span>
               <div
                 className={`
-                  w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium
-                  transition-all duration-300
+                  w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-all
                   ${isTodayDate
-                    ? 'bg-gradient-to-br from-primary to-primary-dark text-white ring-2 ring-primary/50 ring-offset-2 ring-offset-neutral-900 shadow-lg shadow-primary/30'
+                    ? 'bg-primary text-white ring-2 ring-primary/30 ring-offset-2'
                     : isActive
-                    ? 'bg-gradient-to-br from-accent to-accent-light text-white shadow-md shadow-accent/20'
+                    ? 'bg-primary/80 text-white'
                     : isPast
-                    ? 'bg-neutral-800 text-neutral-500'
-                    : 'bg-neutral-800/50 text-neutral-400'
+                    ? 'bg-neutral-200 text-neutral-400'
+                    : 'bg-neutral-100 text-neutral-500'
                   }
                 `}
               >
@@ -61,12 +60,11 @@ const StreakWidget: React.FC<StreakWidgetProps> = ({
       </div>
 
       {/* Streak info */}
-      <div className="relative overflow-hidden flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-accent/20 via-secondary/10 to-accent/20 rounded-xl border border-accent/20">
-        <div className="absolute inset-0 animate-shimmer" />
-        <Flame size={24} className="text-accent relative z-10" />
-        <div className="text-center relative z-10">
-          <p className="font-bold text-lg text-gradient-warm">{streak} Day Streak</p>
-          <p className="text-xs text-neutral-400">
+      <div className="flex items-center justify-center gap-3 py-4 bg-primary-muted rounded-xl border border-primary/10">
+        <Flame size={24} className="text-primary" />
+        <div className="text-center">
+          <p className="font-bold text-lg text-primary">{streak} Day Streak</p>
+          <p className="text-xs text-neutral-500">
             You&apos;re on fire! Keep the flame lit every day!
           </p>
         </div>
@@ -75,8 +73,8 @@ const StreakWidget: React.FC<StreakWidgetProps> = ({
       {/* Longest streak */}
       {longestStreak > 0 && (
         <div className="flex items-center justify-center gap-2 mt-3 text-xs text-neutral-500">
-          <Zap size={14} className="text-secondary" />
-          <span>Longest streak: <span className="font-semibold text-secondary">{longestStreak} days</span></span>
+          <Zap size={14} className="text-primary" />
+          <span>Longest streak: <span className="font-semibold text-primary">{longestStreak} days</span></span>
         </div>
       )}
     </Card>

@@ -21,14 +21,14 @@ const Card: React.FC<CardProps> = ({
   glow = false,
   onClick,
 }) => {
-  const baseStyles = 'rounded-2xl transition-all duration-300';
+  const baseStyles = 'rounded-2xl transition-all';
 
   const variants = {
-    default: 'bg-neutral-800/50 border border-neutral-700/50',
+    default: 'bg-white border border-neutral-200 shadow-sm',
     glass: 'glass',
-    'glass-dark': 'glass-dark',
-    elevated: 'bg-neutral-800/80 shadow-2xl shadow-black/20',
-    gradient: 'border-gradient bg-neutral-900/60',
+    'glass-dark': 'bg-white border border-neutral-100 shadow-md',
+    elevated: 'bg-white shadow-lg',
+    gradient: 'bg-primary-muted border border-primary/10',
   };
 
   const paddings = {
@@ -42,11 +42,9 @@ const Card: React.FC<CardProps> = ({
     ? 'cursor-pointer card-hover'
     : '';
 
-  const glowStyles = glow ? 'animate-glow' : '';
-
   return (
     <div
-      className={`${baseStyles} ${variants[variant]} ${paddings[padding]} ${hoverStyles} ${glowStyles} ${className}`}
+      className={`${baseStyles} ${variants[variant]} ${paddings[padding]} ${hoverStyles} ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

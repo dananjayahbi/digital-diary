@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Sparkles, Heart, Share2 } from 'lucide-react';
+import { Leaf, Heart, Share2 } from 'lucide-react';
 
 interface DailyCardProps {
   imageUrl?: string;
@@ -19,68 +19,59 @@ const DailyCard: React.FC<DailyCardProps> = ({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl cursor-pointer group transition-all duration-500 hover:scale-[1.02]"
+      className="relative overflow-hidden rounded-2xl cursor-pointer group transition-all hover:shadow-lg"
       onClick={onClick}
     >
       {/* Main image container */}
-      <div className="aspect-[4/5] relative">
+      <div className="aspect-4/5 relative">
         <Image
           src={imageUrl}
           alt="Daily inspiration"
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
+          className="object-cover transition-transform group-hover:scale-105"
         />
         
-        {/* Multiple gradient overlays for depth */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        {/* Shimmer effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
       </div>
 
       {/* Top badge */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-        <div className="glass-subtle px-3 py-1.5 rounded-full flex items-center gap-2">
-          <Sparkles size={14} className="text-primary" />
-          <span className="text-xs font-medium text-white">Daily Inspiration</span>
+      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+        <div className="bg-white/90 px-3 py-1.5 rounded-full flex items-center gap-2">
+          <Leaf size={14} className="text-primary" />
+          <span className="text-xs font-medium text-foreground">Daily Inspiration</span>
         </div>
         
         {/* Action buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button 
             onClick={(e) => {
               e.stopPropagation();
               setIsLiked(!isLiked);
             }}
-            className={`p-2 rounded-full transition-all duration-300 ${
+            className={`p-2 rounded-full transition-all ${
               isLiked 
-                ? 'bg-accent/80 text-white' 
-                : 'glass-subtle text-white hover:bg-white/30'
+                ? 'bg-red-500 text-white' 
+                : 'bg-white/90 text-neutral-600 hover:bg-white'
             }`}
           >
-            <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} />
+            <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
           </button>
           <button 
             onClick={(e) => e.stopPropagation()}
-            className="p-2 rounded-full glass-subtle text-white hover:bg-white/30 transition-all duration-300"
+            className="p-2 rounded-full bg-white/90 text-neutral-600 hover:bg-white transition-all"
           >
-            <Share2 size={16} />
+            <Share2 size={14} />
           </button>
         </div>
       </div>
 
       {/* Bottom content */}
-      <div className="absolute bottom-0 left-0 right-0 p-5">
-        <div className="glass rounded-xl p-4 backdrop-blur-xl">
-          <p className="text-white text-sm font-medium text-center leading-relaxed">
-            &quot;{caption}&quot;
-          </p>
-        </div>
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <p className="text-white text-sm font-medium text-center">
+          &quot;{caption}&quot;
+        </p>
       </div>
-
-      {/* Corner glow effect */}
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/30 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     </div>
   );
 };

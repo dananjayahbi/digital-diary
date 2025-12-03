@@ -47,41 +47,38 @@ const JournalCard: React.FC<JournalCardProps> = ({
   return (
     <Card variant="glass" className="overflow-hidden">
       {/* Header with prompt */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-accent/10 to-secondary/20 p-6 -m-5 mb-5 border-b border-white/10">
-        <div className="absolute inset-0 animate-shimmer" />
-        <div className="relative">
-          <div className="flex items-center gap-2 text-sm text-neutral-400 mb-3">
-            <Sparkles size={14} className="text-primary" />
-            <span className="font-medium">Savor the Moment</span>
-            <span className="ml-auto flex items-center gap-1.5 text-neutral-500">
-              <Clock size={14} />
-              {currentTime}
-            </span>
-          </div>
-          <p className="text-xl font-medium text-foreground italic leading-relaxed">
-            &quot;{prompt}&quot;
-          </p>
-          
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 mt-4">
-            <button className="p-2.5 rounded-xl glass-subtle hover:bg-white/20 transition-all duration-300 group">
-              <ThumbsUp size={18} className="text-neutral-400 group-hover:text-primary transition-colors" />
-            </button>
-            <button className="p-2.5 rounded-xl glass-subtle hover:bg-white/20 transition-all duration-300 group">
-              <Heart size={18} className="text-neutral-400 group-hover:text-accent transition-colors" />
-            </button>
-            <button className="p-2.5 rounded-xl glass-subtle hover:bg-white/20 transition-all duration-300 group">
-              <Share2 size={18} className="text-neutral-400 group-hover:text-secondary transition-colors" />
-            </button>
-          </div>
+      <div className="bg-primary-muted p-5 -m-5 mb-5 border-b border-primary/10">
+        <div className="flex items-center gap-2 text-sm text-neutral-500 mb-2">
+          <Sparkles size={14} className="text-primary" />
+          <span className="font-medium">Savor the Moment</span>
+          <span className="ml-auto flex items-center gap-1.5 text-neutral-400">
+            <Clock size={14} />
+            {currentTime}
+          </span>
+        </div>
+        <p className="text-lg font-medium text-foreground italic leading-relaxed">
+          &quot;{prompt}&quot;
+        </p>
+        
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 mt-4">
+          <button className="p-2 rounded-lg hover:bg-white transition-colors">
+            <ThumbsUp size={18} className="text-neutral-400 hover:text-primary" />
+          </button>
+          <button className="p-2 rounded-lg hover:bg-white transition-colors">
+            <Heart size={18} className="text-neutral-400 hover:text-red-400" />
+          </button>
+          <button className="p-2 rounded-lg hover:bg-white transition-colors">
+            <Share2 size={18} className="text-neutral-400 hover:text-primary" />
+          </button>
         </div>
       </div>
 
       {/* Writing prompt */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         <div className="flex items-start gap-2">
           <PenLine size={16} className="text-primary mt-0.5 shrink-0" />
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-neutral-500">
             Use the card&apos;s prompt to take a small action, make a decision, affirm a belief, or reflect on an idea, and write it down:
           </p>
         </div>
@@ -90,26 +87,26 @@ const JournalCard: React.FC<JournalCardProps> = ({
           placeholder="Feel free to journal your current thoughts or anything else you'd like..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="min-h-[150px] bg-neutral-900/50 border-neutral-700/50 text-neutral-200 placeholder:text-neutral-500 focus:border-primary/50"
+          className="min-h-[150px] bg-white border-neutral-200"
         />
 
         {/* Mood Selection */}
-        <div className="space-y-3">
-          <p className="text-sm text-neutral-400 font-medium">How are you feeling?</p>
+        <div className="space-y-2">
+          <p className="text-sm text-neutral-500 font-medium">How are you feeling?</p>
           <div className="flex flex-wrap gap-2">
             {moods.map(({ type, label }) => (
               <button
                 key={type}
                 onClick={() => setSelectedMood(selectedMood === type ? undefined : type)}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-300
+                  flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all
                   ${selectedMood === type 
-                    ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-lg shadow-primary/30' 
-                    : 'bg-neutral-800/80 hover:bg-neutral-700/80 text-neutral-300 border border-neutral-700/50'
+                    ? 'bg-primary text-white' 
+                    : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
                   }
                 `}
               >
-                <span className="text-base">{moodEmojis[type]}</span>
+                <span>{moodEmojis[type]}</span>
                 <span>{label}</span>
               </button>
             ))}
@@ -117,8 +114,8 @@ const JournalCard: React.FC<JournalCardProps> = ({
         </div>
 
         {/* Location input */}
-        <div className="flex items-center gap-2 text-sm text-neutral-500">
-          <MapPin size={14} className="text-neutral-500" />
+        <div className="flex items-center gap-2 text-sm text-neutral-400">
+          <MapPin size={14} />
           <span className="italic">Where are you right now...</span>
         </div>
 
@@ -129,7 +126,6 @@ const JournalCard: React.FC<JournalCardProps> = ({
             onClick={handleSave}
             isLoading={isSaving}
             disabled={!content.trim()}
-            className="px-6"
           >
             Save Entry
           </Button>

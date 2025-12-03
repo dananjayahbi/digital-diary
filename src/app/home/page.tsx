@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sun, Sparkles } from 'lucide-react';
+import { Sun, Leaf } from 'lucide-react';
 import { Header, Sidebar } from '@/components/layout';
 import {
   TaskTimeline,
@@ -108,28 +108,28 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Dramatic Nature Background - Sunset over ocean */}
+      {/* Clean Nature Background - Green forest/nature */}
       <div
         className="bg-nature"
         style={{
-          backgroundImage: `url('https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg')`,
+          backgroundImage: `url('https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg')`,
         }}
       />
 
       <Header />
 
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-7xl mx-auto">
+        <div className="w-full">
           {/* Greeting Section */}
           <div className="mb-8 animate-fadeIn">
-            <div className="flex items-center gap-2 text-neutral-400 mb-2">
-              <Sun size={18} className="text-secondary" />
+            <div className="flex items-center gap-2 text-neutral-500 mb-2">
+              <Sun size={18} className="text-primary" />
               <span className="text-sm font-medium">{todayDate}</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-              {greeting}, <span className="text-gradient">there</span>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+              {greeting}, <span className="text-primary">there</span>
             </h1>
-            <p className="text-neutral-400 mt-2 text-lg">
+            <p className="text-neutral-500 mt-2">
               Let&apos;s make today meaningful and productive
             </p>
           </div>
@@ -180,12 +180,12 @@ const HomePage = () => {
               {/* Daily Inspiration Card */}
               <Card variant="glass" padding="md">
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={16} className="text-accent" />
-                  <span className="text-sm font-medium">Daily Inspiration</span>
+                  <Leaf size={16} className="text-primary" />
+                  <span className="text-sm font-medium text-foreground">Daily Inspiration</span>
                 </div>
                 <DailyCard
-                  imageUrl="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=500&fit=crop"
-                  caption="A world full of flowers, where would it be?"
+                  imageUrl="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=500&fit=crop"
+                  caption="Nature always wears the colors of the spirit"
                 />
               </Card>
             </div>
