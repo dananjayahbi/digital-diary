@@ -107,14 +107,17 @@ const HomePage = () => {
   const totalTasks = tasks.length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       {/* Clean Nature Background - Green forest/nature */}
       <div
-        className="bg-nature"
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('https://images.pexels.com/photos/957024/forest-trees-perspective-bright-957024.jpeg')`,
+          backgroundImage: `url('https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg')`,
         }}
-      />
+      >
+        {/* Light overlay for readability */}
+        <div className="absolute inset-0 bg-white/10" />
+      </div>
 
       <Header />
 
@@ -122,14 +125,14 @@ const HomePage = () => {
         <div className="w-full">
           {/* Greeting Section */}
           <div className="mb-8 animate-fadeIn">
-            <div className="flex items-center gap-2 text-neutral-500 mb-2">
+            <div className="flex items-center gap-2 text-white mb-2">
               <Sun size={18} className="text-primary" />
               <span className="text-sm font-medium">{todayDate}</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
               {greeting}, <span className="text-primary">there</span>
             </h1>
-            <p className="text-neutral-500 mt-2">
+            <p className="text-white mt-2">
               Let&apos;s make today meaningful and productive
             </p>
           </div>
@@ -181,7 +184,7 @@ const HomePage = () => {
               <Card variant="glass" padding="md">
                 <div className="flex items-center gap-2 mb-3">
                   <Leaf size={16} className="text-primary" />
-                  <span className="text-sm font-medium text-foreground">Daily Inspiration</span>
+                  <span className="text-sm font-medium text-white">Daily Inspiration</span>
                 </div>
                 <DailyCard
                   imageUrl="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=500&fit=crop"
