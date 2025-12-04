@@ -14,6 +14,7 @@ interface TaskTimelineProps {
   onDeleteTask?: (taskId: string) => void;
   isLoading?: boolean;
   showCurrentTimeLine?: boolean;
+  selectedDate?: Date;
 }
 
 // Current Time Marker Component
@@ -54,8 +55,30 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   onDeleteTask,
   isLoading = false,
   showCurrentTimeLine = true,
+  selectedDate,
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Check if selected date is today
+  const isToday = useMemo(() => {
+    if (!selectedDate) return true;
+    const today = new Date();
+    return (
+      selectedDate.getDate() === today.getDate() &&
+      selectedDate.getMonth() === today.getMonth() &&
+      selectedDate.getFullYear() === today.getFullYear()
+    );
+  }, [selectedDate]);
+
+  // Format the date for display
+  const dateLabel = useMemo(() => {
+    if (!selectedDate || isToday) return "Today's Schedule";
+    return selectedDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    }) + "'s Schedule";
+  }, [selectedDate, isToday]);
 
   // Update current time every minute
   useEffect(() => {
@@ -76,9 +99,9 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     });
   }, [tasks]);
 
-  // Find where to insert the current time marker
+  // Find where to insert the current time marker (only show on today)
   const currentTimeIndex = useMemo(() => {
-    if (!showCurrentTimeLine) return -1;
+    if (!showCurrentTimeLine || !isToday) return -1;
     
     const now = currentTime.getTime();
     let insertIndex = sortedTasks.length; // Default to end
@@ -94,7 +117,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
       }
     }
     return insertIndex;
-  }, [sortedTasks, currentTime, showCurrentTimeLine]);
+  }, [sortedTasks, currentTime, showCurrentTimeLine, isToday]);
 
   const completedCount = sortedTasks.filter(t => t.isCompleted).length;
 
@@ -110,7 +133,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
             <Calendar size={20} className="text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Today&apos;s Schedule</h3>
+            <h3 className="text-lg font-semibold text-foreground">{dateLabel}</h3>
             <p className="text-xs text-neutral-400">
               {completedCount} of {sortedTasks.length} tasks completed
             </p>

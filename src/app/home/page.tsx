@@ -160,6 +160,7 @@ const HomePage = () => {
                     onAddTask={handleAddTask}
                     onEditTask={handleEditTask}
                     onDeleteTask={handleDeleteTask}
+                    selectedDate={selectedDate}
                   />
                 )}
               </Card>

@@ -17,6 +17,16 @@ interface SidebarProps {
   totalTasks?: number;
 }
 
+// Helper to check if two dates are the same day
+const isSameAsToday = (date: Date): boolean => {
+  const today = new Date();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
+};
+
 const Sidebar: React.FC<SidebarProps> = ({
   selectedDate,
   onDateSelect,
@@ -47,6 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const isSelectedToday = isSameAsToday(selectedDate);
+  const progressLabel = isSelectedToday ? "Today's Progress" : `${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} Progress`;
 
   return (
     <aside className="w-full lg:w-80 shrink-0">
@@ -128,7 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="pt-4 border-t border-neutral-200">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 size={16} className="text-primary" />
-            <h4 className="text-sm font-semibold text-foreground">Today&apos;s Progress</h4>
+            <h4 className="text-sm font-semibold text-foreground">{progressLabel}</h4>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center text-sm">
