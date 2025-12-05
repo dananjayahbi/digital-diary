@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, TimePicker } from '@/components/ui';
 import type { TaskFormData } from '@/types';
 
 interface TaskModalProps {
@@ -97,17 +97,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <Input
+            <TimePicker
               label="Start Time"
-              type="time"
               value={formData.startTime}
-              onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+              onChange={(time) => setFormData({ ...formData, startTime: time })}
+              placeholder="Start time"
             />
-            <Input
+            <TimePicker
               label="End Time"
-              type="time"
               value={formData.endTime}
-              onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+              onChange={(time) => setFormData({ ...formData, endTime: time })}
+              placeholder="End time"
             />
           </div>
 
