@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Clock, ChevronUp, ChevronDown } from 'lucide-react';
+import { Clock, ChevronUp, ChevronDown, X } from 'lucide-react';
 
 interface TimePickerProps {
   value?: string; // HH:MM format (24-hour)
@@ -12,6 +12,8 @@ interface TimePickerProps {
   className?: string;
   use24Hour?: boolean;
 }
+
+type GridMode = 'none' | 'hours' | 'minutes';
 
 const TimePicker: React.FC<TimePickerProps> = ({
   value = '',
@@ -27,9 +29,12 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const [minutes, setMinutes] = useState(0);
   const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
   const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
+  const [gridMode, setGridMode] = useState<GridMode>('none');
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const hoursRef = useRef<HTMLDivElement>(null);
+  const minutesRef = useRef<HTMLDivElement>(null);
 
   // Parse value into hours, minutes, period
   useEffect(() => {
@@ -52,12 +57,11 @@ const TimePicker: React.FC<TimePickerProps> = ({
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const dropdownHeight = 420; // Approximate height of the dropdown
+      const dropdownHeight = 350;
       const viewportHeight = window.innerHeight;
       const spaceBelow = viewportHeight - buttonRect.bottom;
       const spaceAbove = buttonRect.top;
 
-      // If not enough space below but more space above, position on top
       if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
         setDropdownPosition('top');
       } else {
@@ -71,6 +75,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setGridMode('none');
       }
     };
 
@@ -107,39 +112,109 @@ const TimePicker: React.FC<TimePickerProps> = ({
     onChange?.(timeString);
   }, [onChange, use24Hour]);
 
-  const incrementHour = () => {
+  const incrementHour = useCallback(() => {
     const maxHours = use24Hour ? 23 : 12;
     const minHours = use24Hour ? 0 : 1;
-    const newHours = hours >= maxHours ? minHours : hours + 1;
-    setHours(newHours);
-    handleTimeChange(newHours, minutes, period);
-  };
+    setHours(prev => {
+      const newHours = prev >= maxHours ? minHours : prev + 1;
+      handleTimeChange(newHours, minutes, period);
+      return newHours;
+    });
+  }, [use24Hour, minutes, period, handleTimeChange]);
 
-  const decrementHour = () => {
+  const decrementHour = useCallback(() => {
     const maxHours = use24Hour ? 23 : 12;
     const minHours = use24Hour ? 0 : 1;
-    const newHours = hours <= minHours ? maxHours : hours - 1;
-    setHours(newHours);
-    handleTimeChange(newHours, minutes, period);
-  };
+    setHours(prev => {
+      const newHours = prev <= minHours ? maxHours : prev - 1;
+      handleTimeChange(newHours, minutes, period);
+      return newHours;
+    });
+  }, [use24Hour, minutes, period, handleTimeChange]);
 
-  const incrementMinute = () => {
-    const newMinutes = minutes >= 55 ? 0 : minutes + 5;
-    setMinutes(newMinutes);
-    handleTimeChange(hours, newMinutes, period);
-  };
+  const incrementMinute = useCallback(() => {
+    setMinutes(prev => {
+      const newMinutes = prev >= 59 ? 0 : prev + 1;
+      handleTimeChange(hours, newMinutes, period);
+      return newMinutes;
+    });
+  }, [hours, period, handleTimeChange]);
 
-  const decrementMinute = () => {
-    const newMinutes = minutes <= 0 ? 55 : minutes - 5;
-    setMinutes(newMinutes);
-    handleTimeChange(hours, newMinutes, period);
-  };
+  const decrementMinute = useCallback(() => {
+    setMinutes(prev => {
+      const newMinutes = prev <= 0 ? 59 : prev - 1;
+      handleTimeChange(hours, newMinutes, period);
+      return newMinutes;
+    });
+  }, [hours, period, handleTimeChange]);
 
-  const togglePeriod = () => {
-    const newPeriod = period === 'AM' ? 'PM' : 'AM';
-    setPeriod(newPeriod);
-    handleTimeChange(hours, minutes, newPeriod);
-  };
+  const togglePeriod = useCallback(() => {
+    setPeriod(prev => {
+      const newPeriod = prev === 'AM' ? 'PM' : 'AM';
+      handleTimeChange(hours, minutes, newPeriod);
+      return newPeriod;
+    });
+  }, [hours, minutes, handleTimeChange]);
+
+  const selectHour = useCallback((h: number) => {
+    setHours(h);
+    handleTimeChange(h, minutes, period);
+    setGridMode('none');
+  }, [minutes, period, handleTimeChange]);
+
+  const selectMinute = useCallback((m: number) => {
+    setMinutes(m);
+    handleTimeChange(hours, m, period);
+    setGridMode('none');
+  }, [hours, period, handleTimeChange]);
+
+  // Mouse wheel handlers
+  useEffect(() => {
+    const hoursEl = hoursRef.current;
+    const minutesEl = minutesRef.current;
+
+    const handleHoursWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        incrementHour();
+      } else {
+        decrementHour();
+      }
+    };
+
+    const handleMinutesWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        incrementMinute();
+      } else {
+        decrementMinute();
+      }
+    };
+
+    if (hoursEl) {
+      hoursEl.addEventListener('wheel', handleHoursWheel, { passive: false });
+    }
+    if (minutesEl) {
+      minutesEl.addEventListener('wheel', handleMinutesWheel, { passive: false });
+    }
+
+    return () => {
+      if (hoursEl) {
+        hoursEl.removeEventListener('wheel', handleHoursWheel);
+      }
+      if (minutesEl) {
+        minutesEl.removeEventListener('wheel', handleMinutesWheel);
+      }
+    };
+  }, [incrementHour, decrementHour, incrementMinute, decrementMinute]);
+
+  // Generate hour options
+  const hourOptions = use24Hour 
+    ? Array.from({ length: 24 }, (_, i) => i)
+    : Array.from({ length: 12 }, (_, i) => i + 1);
+
+  // Generate minute options (0-59)
+  const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
@@ -185,95 +260,178 @@ const TimePicker: React.FC<TimePickerProps> = ({
           className={`
             absolute z-50 min-w-[280px] w-max bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden animate-fadeIn
             ${dropdownPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'}
-            max-h-[400px] overflow-y-auto left-0
+            left-0
           `}
         >
-          {/* Time Spinner */}
-          <div className="p-4">
-            <div className="flex items-center justify-center gap-2">
-              {/* Hours */}
-              <div className="flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={incrementHour}
-                  className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                >
-                  <ChevronUp size={20} className="text-neutral-500" />
-                </button>
-                <div className="w-16 h-14 flex items-center justify-center bg-primary/10 rounded-xl">
-                  <span className="text-2xl font-bold text-primary">
-                    {hours.toString().padStart(2, '0')}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={decrementHour}
-                  className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                >
-                  <ChevronDown size={20} className="text-neutral-500" />
-                </button>
-              </div>
-
-              <span className="text-2xl font-bold text-neutral-300 mx-1">:</span>
-
-              {/* Minutes */}
-              <div className="flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={incrementMinute}
-                  className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                >
-                  <ChevronUp size={20} className="text-neutral-500" />
-                </button>
-                <div className="w-16 h-14 flex items-center justify-center bg-primary/10 rounded-xl">
-                  <span className="text-2xl font-bold text-primary">
-                    {minutes.toString().padStart(2, '0')}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={decrementMinute}
-                  className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                >
-                  <ChevronDown size={20} className="text-neutral-500" />
-                </button>
-              </div>
-
-              {/* AM/PM Toggle (only in 12-hour mode) */}
-              {!use24Hour && (
-                <div className="flex flex-col items-center ml-2">
-                  <button
-                    type="button"
-                    onClick={togglePeriod}
-                    className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                  >
-                    <ChevronUp size={20} className="text-neutral-500" />
-                  </button>
-                  <div className="w-14 h-14 flex items-center justify-center bg-primary/10 rounded-xl">
-                    <span className="text-lg font-bold text-primary">{period}</span>
+          {/* Main Spinner View */}
+          {gridMode === 'none' && (
+            <>
+              <div className="p-4">
+                <p className="text-xs text-neutral-400 text-center mb-3">
+                  Use scroll wheel or click numbers for precise selection
+                </p>
+                <div className="flex items-center justify-center gap-2">
+                  {/* Hours */}
+                  <div className="flex flex-col items-center" ref={hoursRef}>
+                    <button
+                      type="button"
+                      onClick={incrementHour}
+                      className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                    >
+                      <ChevronUp size={20} className="text-neutral-500" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGridMode('hours')}
+                      className="w-16 h-14 flex items-center justify-center bg-primary/10 rounded-xl hover:bg-primary/20 transition-colors cursor-pointer"
+                    >
+                      <span className="text-2xl font-bold text-primary">
+                        {hours.toString().padStart(2, '0')}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={decrementHour}
+                      className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                    >
+                      <ChevronDown size={20} className="text-neutral-500" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={togglePeriod}
-                    className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                  >
-                    <ChevronDown size={20} className="text-neutral-500" />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Done Button */}
-          <div className="border-t border-neutral-100 p-3">
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors"
-            >
-              Done
-            </button>
-          </div>
+                  <span className="text-2xl font-bold text-neutral-300 mx-1">:</span>
+
+                  {/* Minutes */}
+                  <div className="flex flex-col items-center" ref={minutesRef}>
+                    <button
+                      type="button"
+                      onClick={incrementMinute}
+                      className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                    >
+                      <ChevronUp size={20} className="text-neutral-500" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGridMode('minutes')}
+                      className="w-16 h-14 flex items-center justify-center bg-primary/10 rounded-xl hover:bg-primary/20 transition-colors cursor-pointer"
+                    >
+                      <span className="text-2xl font-bold text-primary">
+                        {minutes.toString().padStart(2, '0')}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={decrementMinute}
+                      className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                    >
+                      <ChevronDown size={20} className="text-neutral-500" />
+                    </button>
+                  </div>
+
+                  {/* AM/PM Toggle */}
+                  {!use24Hour && (
+                    <div className="flex flex-col items-center ml-2">
+                      <button
+                        type="button"
+                        onClick={togglePeriod}
+                        className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                      >
+                        <ChevronUp size={20} className="text-neutral-500" />
+                      </button>
+                      <div className="w-14 h-14 flex items-center justify-center bg-primary/10 rounded-xl">
+                        <span className="text-lg font-bold text-primary">{period}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={togglePeriod}
+                        className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                      >
+                        <ChevronDown size={20} className="text-neutral-500" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Done Button */}
+              <div className="border-t border-neutral-100 p-3">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Hours Grid */}
+          {gridMode === 'hours' && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-foreground">Select Hour</h4>
+                <button
+                  type="button"
+                  onClick={() => setGridMode('none')}
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  <X size={18} className="text-neutral-500" />
+                </button>
+              </div>
+              <div className={`grid ${use24Hour ? 'grid-cols-6' : 'grid-cols-4'} gap-1.5 max-h-[200px] overflow-y-auto`}>
+                {hourOptions.map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => selectHour(h)}
+                    className={`
+                      py-2 px-1 text-sm font-medium rounded-lg transition-all
+                      ${hours === h 
+                        ? 'bg-primary text-white' 
+                        : 'bg-neutral-100 text-neutral-700 hover:bg-primary/20 hover:text-primary'
+                      }
+                    `}
+                  >
+                    {h.toString().padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Minutes Grid */}
+          {gridMode === 'minutes' && (
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-foreground">Select Minute</h4>
+                <button
+                  type="button"
+                  onClick={() => setGridMode('none')}
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  <X size={18} className="text-neutral-500" />
+                </button>
+              </div>
+              <div className="grid grid-cols-6 gap-1.5 max-h-[240px] overflow-y-auto">
+                {minuteOptions.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => selectMinute(m)}
+                    className={`
+                      py-2 px-1 text-sm font-medium rounded-lg transition-all
+                      ${minutes === m 
+                        ? 'bg-primary text-white' 
+                        : 'bg-neutral-100 text-neutral-700 hover:bg-primary/20 hover:text-primary'
+                      }
+                    `}
+                  >
+                    {m.toString().padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
