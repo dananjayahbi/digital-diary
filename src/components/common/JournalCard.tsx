@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Sparkles, Clock, ThumbsUp, Heart, Share2, MapPin, PenLine } from 'lucide-react';
 import { Card, TextArea, Button, SkeletonJournalCard } from '@/components/ui';
 import type { MoodType } from '@/types';
@@ -14,7 +14,7 @@ interface JournalCardProps {
   isLoading?: boolean;
 }
 
-const JournalCard: React.FC<JournalCardProps> = ({
+const JournalCard: React.FC<JournalCardProps> = React.memo(({
   prompt = "Take a moment to reflect on your day. What are you grateful for?",
   onSave,
   initialContent = '',
@@ -25,26 +25,34 @@ const JournalCard: React.FC<JournalCardProps> = ({
   const [selectedMood, setSelectedMood] = React.useState<MoodType | undefined>(initialMood);
   const [isSaving, setIsSaving] = React.useState(false);
 
-  const moods: { type: MoodType; label: string }[] = [
+  const moods = useMemo<{ type: MoodType; label: string }[]>(() => [
     { type: 'happy', label: 'Happy' },
     { type: 'calm', label: 'Calm' },
     { type: 'neutral', label: 'Neutral' },
     { type: 'sad', label: 'Sad' },
     { type: 'anxious', label: 'Anxious' },
-  ];
+  ], []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!content.trim()) return;
     setIsSaving(true);
     await onSave(content, selectedMood);
     setIsSaving(false);
-  };
+  }, [content, selectedMood, onSave]);
 
-  const currentTime = new Date().toLocaleTimeString('en-US', {
+  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+  }, []);
+
+  const handleMoodSelect = useCallback((type: MoodType) => {
+    setSelectedMood(prev => prev === type ? undefined : type);
+  }, []);
+
+  const currentTime = useMemo(() => new Date().toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,
-  });
+  }), []);
 
   if (isLoading) {
     return <SkeletonJournalCard />;
@@ -92,7 +100,7 @@ const JournalCard: React.FC<JournalCardProps> = ({
         <TextArea
           placeholder="Feel free to journal your current thoughts or anything else you'd like..."
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleContentChange}
           className="min-h-[150px] bg-white border-neutral-200"
         />
 
@@ -103,7 +111,7 @@ const JournalCard: React.FC<JournalCardProps> = ({
             {moods.map(({ type, label }) => (
               <button
                 key={type}
-                onClick={() => setSelectedMood(selectedMood === type ? undefined : type)}
+                onClick={() => handleMoodSelect(type)}
                 className={`
                   flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors duration-150
                   ${selectedMood === type 
@@ -139,6 +147,8 @@ const JournalCard: React.FC<JournalCardProps> = ({
       </div>
     </Card>
   );
-};
+});
+
+JournalCard.displayName = 'JournalCard';
 
 export default JournalCard;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Plus, Calendar, Leaf, Clock } from 'lucide-react';
 import type { Task } from '@/types';
 import TaskItem from './TaskItem';
@@ -17,8 +17,8 @@ interface TaskTimelineProps {
   selectedDate?: Date;
 }
 
-// Current Time Marker Component
-const CurrentTimeMarker: React.FC<{ time: Date }> = ({ time }) => {
+// Current Time Marker Component - memoized to prevent unnecessary re-renders
+const CurrentTimeMarker: React.FC<{ time: Date }> = React.memo(({ time }) => {
   const formattedTime = time.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
@@ -45,7 +45,9 @@ const CurrentTimeMarker: React.FC<{ time: Date }> = ({ time }) => {
       </span>
     </div>
   );
-};
+});
+
+CurrentTimeMarker.displayName = 'CurrentTimeMarker';
 
 const TaskTimeline: React.FC<TaskTimelineProps> = ({
   tasks,
@@ -58,6 +60,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   selectedDate,
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check if selected date is today
   const isToday = useMemo(() => {
@@ -80,14 +83,28 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
     }) + "'s Schedule";
   }, [selectedDate, isToday]);
 
-  // Update current time every minute
+  // Update current time every minute - only when showing today's schedule
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    
+    // Only start interval if we need to show current time marker
+    if (showCurrentTimeLine && isToday) {
+      intervalRef.current = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 60000); // Update every minute
+    }
 
-    return () => clearInterval(timer);
-  }, []);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [showCurrentTimeLine, isToday]);
 
   // Sort tasks by start time - closest upcoming tasks first
   const sortedTasks = useMemo(() => {
@@ -120,6 +137,11 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
   }, [sortedTasks, currentTime, showCurrentTimeLine, isToday]);
 
   const completedCount = sortedTasks.filter(t => t.isCompleted).length;
+
+  // Memoize handlers
+  const handleToggleComplete = useCallback((taskId: string, completed: boolean) => {
+    onToggleComplete(taskId, completed);
+  }, [onToggleComplete]);
 
   if (isLoading) {
     return <SkeletonTaskTimeline count={3} />;
@@ -173,7 +195,7 @@ const TaskTimeline: React.FC<TaskTimelineProps> = ({
               )}
               <TaskItem
                 task={task}
-                onToggleComplete={onToggleComplete}
+                onToggleComplete={handleToggleComplete}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
               />

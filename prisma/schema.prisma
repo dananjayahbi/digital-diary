@@ -85,6 +85,16 @@ model DailyPrompt {
   createdAt DateTime @default(now())
 }
 
+// User's custom motivational quotes
+model MotivationalQuote {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  author    String?
+  isFavorite Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // Background images for the app
 model BackgroundImage {
   id          String   @id @default(cuid())

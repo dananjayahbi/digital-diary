@@ -215,13 +215,13 @@ const InsightsPage = () => {
                       <div className="w-full flex flex-col gap-1 items-center">
                         {/* Tasks bar */}
                         <div
-                          className="w-full max-w-8 bg-task-blue/80 rounded-t transition-all"
+                          className="w-full max-w-8 bg-task-blue/80 rounded-t"
                           style={{ height: `${(day.tasks / maxActivity) * 100}px` }}
                           title={`${day.tasks} tasks`}
                         />
                         {/* Journal bar */}
                         <div
-                          className="w-full max-w-8 bg-task-purple/80 rounded-b transition-all"
+                          className="w-full max-w-8 bg-task-purple/80 rounded-b"
                           style={{ height: `${(day.entries / maxActivity) * 100}px` }}
                           title={`${day.entries} entries`}
                         />
@@ -268,7 +268,7 @@ const InsightsPage = () => {
                             </div>
                             <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all ${
+                                className={`h-full rounded-full ${
                                   mood === 'happy' ? 'bg-task-green' :
                                   mood === 'calm' ? 'bg-task-blue' :
                                   mood === 'neutral' ? 'bg-neutral-400' :
@@ -332,7 +332,7 @@ const InsightsPage = () => {
                   </div>
                   <div className="w-full h-3 bg-neutral-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-primary rounded-full transition-all"
+                      className="h-full bg-primary rounded-full"
                       style={{ width: `${completionRate}%` }}
                     />
                   </div>

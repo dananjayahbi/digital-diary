@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -12,10 +12,16 @@ import {
   Save,
   RefreshCw,
   Check,
-  X
+  X,
+  Quote,
+  Plus,
+  Trash2,
+  Heart,
+  Edit2
 } from 'lucide-react';
 import { Header } from '@/components/layout';
 import { Card, Button, Input, TextArea, Skeleton, SkeletonSettingsTab } from '@/components/ui';
+import { useQuotes } from '@/hooks';
 
 interface UserSettings {
   name: string;
@@ -88,8 +94,63 @@ const SettingsPage = () => {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'notifications' | 'data'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance' | 'quotes' | 'notifications' | 'data'>('profile');
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Quote management state
+  const [newQuoteContent, setNewQuoteContent] = useState('');
+  const [newQuoteAuthor, setNewQuoteAuthor] = useState('');
+  const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
+  const [editQuoteContent, setEditQuoteContent] = useState('');
+  const [editQuoteAuthor, setEditQuoteAuthor] = useState('');
+  
+  // Use quotes hook
+  const { 
+    quotes, 
+    isLoading: quotesLoading, 
+    createQuote, 
+    updateQuote, 
+    toggleFavorite, 
+    deleteQuote 
+  } = useQuotes();
+
+  // Quote handlers
+  const handleAddQuote = useCallback(async () => {
+    if (!newQuoteContent.trim()) return;
+    
+    await createQuote({
+      content: newQuoteContent.trim(),
+      author: newQuoteAuthor.trim() || undefined,
+    });
+    
+    setNewQuoteContent('');
+    setNewQuoteAuthor('');
+  }, [newQuoteContent, newQuoteAuthor, createQuote]);
+  
+  const handleStartEdit = useCallback((quote: { id: string; content: string; author?: string | null }) => {
+    setEditingQuoteId(quote.id);
+    setEditQuoteContent(quote.content);
+    setEditQuoteAuthor(quote.author || '');
+  }, []);
+  
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingQuoteId || !editQuoteContent.trim()) return;
+    
+    await updateQuote(editingQuoteId, {
+      content: editQuoteContent.trim(),
+      author: editQuoteAuthor.trim() || undefined,
+    });
+    
+    setEditingQuoteId(null);
+    setEditQuoteContent('');
+    setEditQuoteAuthor('');
+  }, [editingQuoteId, editQuoteContent, editQuoteAuthor, updateQuote]);
+  
+  const handleCancelEdit = useCallback(() => {
+    setEditingQuoteId(null);
+    setEditQuoteContent('');
+    setEditQuoteAuthor('');
+  }, []);
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -133,6 +194,7 @@ const SettingsPage = () => {
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'quotes', label: 'Quotes', icon: Quote },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'data', label: 'Data', icon: RefreshCw },
   ] as const;
@@ -255,7 +317,7 @@ const SettingsPage = () => {
                           <button
                             key={theme.id}
                             onClick={() => setSettings({ ...settings, theme: theme.id as UserSettings['theme'] })}
-                            className={`p-4 rounded-lg border-2 transition-all ${
+                            className={`p-4 rounded-lg border-2 transition-colors duration-100 ${
                               settings.theme === theme.id
                                 ? 'border-primary bg-primary/10'
                                 : 'border-neutral-200 hover:border-primary/50'
@@ -281,7 +343,7 @@ const SettingsPage = () => {
                         <button
                           key={bg.id}
                           onClick={() => setSettings({ ...settings, backgroundImage: bg.url })}
-                          className={`relative overflow-hidden rounded-lg aspect-video border-2 transition-all ${
+                          className={`relative overflow-hidden rounded-lg aspect-video border-2 transition-colors duration-100 ${
                             settings.backgroundImage === bg.url
                               ? 'border-primary ring-2 ring-primary ring-offset-2'
                               : 'border-transparent hover:border-primary/50'
@@ -314,6 +376,147 @@ const SettingsPage = () => {
                         placeholder="https://example.com/image.jpg"
                       />
                     </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Quotes Tab */}
+              {activeTab === 'quotes' && (
+                <div className="space-y-6">
+                  <Card variant="glass" padding="lg">
+                    <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                      <Quote size={20} className="text-primary" />
+                      Add New Quote
+                    </h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Quote Content *
+                        </label>
+                        <TextArea
+                          value={newQuoteContent}
+                          onChange={(e) => setNewQuoteContent(e.target.value)}
+                          placeholder="Enter your motivational quote..."
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Author (optional)
+                        </label>
+                        <Input
+                          value={newQuoteAuthor}
+                          onChange={(e) => setNewQuoteAuthor(e.target.value)}
+                          placeholder="Who said this?"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleAddQuote}
+                        disabled={!newQuoteContent.trim()}
+                      >
+                        <Plus size={16} />
+                        Add Quote
+                      </Button>
+                    </div>
+                  </Card>
+
+                  <Card variant="glass" padding="lg">
+                    <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                      <Quote size={20} className="text-primary" />
+                      Your Quotes ({quotes.length})
+                    </h2>
+                    {quotesLoading ? (
+                      <div className="space-y-4">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="animate-pulse p-4 bg-white/50 rounded-lg">
+                            <div className="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                            <div className="h-4 bg-neutral-200 rounded w-1/2 mb-2"></div>
+                            <div className="h-3 bg-neutral-200 rounded w-1/4"></div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : quotes.length === 0 ? (
+                      <p className="text-neutral-500 text-center py-8">
+                        No quotes yet. Add your first motivational quote above!
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {quotes.map((quote) => (
+                          <div 
+                            key={quote.id} 
+                            className="p-4 bg-white/50 rounded-lg border border-neutral-100"
+                          >
+                            {editingQuoteId === quote.id ? (
+                              <div className="space-y-3">
+                                <TextArea
+                                  value={editQuoteContent}
+                                  onChange={(e) => setEditQuoteContent(e.target.value)}
+                                  rows={2}
+                                />
+                                <Input
+                                  value={editQuoteAuthor}
+                                  onChange={(e) => setEditQuoteAuthor(e.target.value)}
+                                  placeholder="Author (optional)"
+                                />
+                                <div className="flex gap-2">
+                                  <Button size="sm" onClick={handleSaveEdit}>
+                                    <Check size={14} />
+                                    Save
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                                    <X size={14} />
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="text-foreground italic mb-2">
+                                  &ldquo;{quote.content}&rdquo;
+                                </p>
+                                {quote.author && (
+                                  <p className="text-sm text-neutral-500 mb-3">
+                                    — {quote.author}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => toggleFavorite(quote.id)}
+                                    className={`p-1.5 rounded-lg hover:bg-white/50 transition-colors ${
+                                      quote.isFavorite ? 'text-red-500' : 'text-neutral-400'
+                                    }`}
+                                    title={quote.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                  >
+                                    <Heart 
+                                      size={16} 
+                                      className={quote.isFavorite ? 'fill-current' : ''} 
+                                    />
+                                  </button>
+                                  <button
+                                    onClick={() => handleStartEdit(quote)}
+                                    className="p-1.5 rounded-lg hover:bg-white/50 transition-colors text-neutral-400 hover:text-primary"
+                                    title="Edit quote"
+                                  >
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (confirm('Are you sure you want to delete this quote?')) {
+                                        deleteQuote(quote.id);
+                                      }
+                                    }}
+                                    className="p-1.5 rounded-lg hover:bg-white/50 transition-colors text-neutral-400 hover:text-red-500"
+                                    title="Delete quote"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </Card>
                 </div>
               )}

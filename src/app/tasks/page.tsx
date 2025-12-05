@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Plus, Search, Filter, Calendar, CheckCircle2, Circle, ListTodo, Clock, Trash2, Edit3 } from 'lucide-react';
 import { Header } from '@/components/layout';
 import { Card, Button, Input, Badge, SkeletonStatsCard, SkeletonTaskItem, Skeleton } from '@/components/ui';
@@ -12,8 +12,8 @@ import type { Task, TaskFormData } from '@/types';
 type FilterType = 'all' | 'completed' | 'pending' | 'today';
 type SortType = 'time' | 'priority' | 'created';
 
-// Current Time Marker Component for Tasks Page
-const CurrentTimeMarker: React.FC<{ time: Date }> = ({ time }) => {
+// Current Time Marker Component for Tasks Page - memoized
+const CurrentTimeMarker: React.FC<{ time: Date }> = React.memo(({ time }) => {
   const formattedTime = time.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
@@ -35,7 +35,9 @@ const CurrentTimeMarker: React.FC<{ time: Date }> = ({ time }) => {
       </span>
     </div>
   );
-};
+});
+
+CurrentTimeMarker.displayName = 'CurrentTimeMarker';
 
 const TasksPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -46,14 +48,36 @@ const TasksPage = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update current time every minute
+  // Check if selected date is today (to show current time marker)
+  const isToday = useMemo(() => 
+    selectedDate.toDateString() === new Date().toDateString(),
+    [selectedDate.toDateString()]
+  );
+
+  // Update current time every minute - only when viewing today
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    
+    // Only start interval if we're viewing today
+    if (isToday) {
+      intervalRef.current = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 60000);
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isToday]);
 
   const {
     tasks,
@@ -62,7 +86,6 @@ const TasksPage = () => {
     createTask,
     updateTask,
     deleteTask,
-    fetchTasks,
   } = useTasks({ date: selectedDate });
 
   // Filter and sort tasks
@@ -109,9 +132,6 @@ const TasksPage = () => {
       });
   }, [tasks, searchQuery, filterType, sortType]);
 
-  // Check if selected date is today (to show current time marker)
-  const isToday = selectedDate.toDateString() === new Date().toDateString();
-
   // Find where to insert the current time marker
   const currentTimeIndex = useMemo(() => {
     if (!isToday || sortType !== 'time') return -1;
@@ -132,27 +152,27 @@ const TasksPage = () => {
     return insertIndex;
   }, [filteredTasks, currentTime, isToday, sortType]);
 
-  const handleToggleComplete = async (taskId: string, completed: boolean) => {
+  const handleToggleComplete = useCallback(async (taskId: string, completed: boolean) => {
     await toggleComplete(taskId, completed);
-  };
+  }, [toggleComplete]);
 
-  const handleAddTask = () => {
+  const handleAddTask = useCallback(() => {
     setEditingTask(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = useCallback((task: Task) => {
     setEditingTask(task);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = useCallback(async (taskId: string) => {
     if (confirm('Are you sure you want to delete this task?')) {
       await deleteTask(taskId);
     }
-  };
+  }, [deleteTask]);
 
-  const handleSaveTask = async (formData: TaskFormData) => {
+  const handleSaveTask = useCallback(async (formData: TaskFormData) => {
     if (editingTask) {
       await updateTask(editingTask.id, {
         ...formData,
@@ -171,23 +191,27 @@ const TasksPage = () => {
     }
     setIsModalOpen(false);
     setEditingTask(null);
-  };
+  }, [editingTask, selectedDate, updateTask, createTask]);
 
-  // Date navigation
-  const navigateDate = (days: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() + days);
-    setSelectedDate(newDate);
-  };
+  // Date navigation - memoized
+  const navigateDate = useCallback((days: number) => {
+    setSelectedDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(prevDate.getDate() + days);
+      return newDate;
+    });
+  }, []);
 
-  const goToToday = () => {
+  const goToToday = useCallback(() => {
     setSelectedDate(new Date());
-  };
+  }, []);
 
-  // Stats
-  const completedCount = tasks.filter(t => t.isCompleted).length;
-  const pendingCount = tasks.filter(t => !t.isCompleted).length;
-  const totalDuration = tasks.reduce((sum, t) => sum + (t.duration || 0), 0);
+  // Stats - memoized
+  const { completedCount, pendingCount, totalDuration } = useMemo(() => ({
+    completedCount: tasks.filter(t => t.isCompleted).length,
+    pendingCount: tasks.filter(t => !t.isCompleted).length,
+    totalDuration: tasks.reduce((sum, t) => sum + (t.duration || 0), 0)
+  }), [tasks]);
 
   return (
     <div className="min-h-screen">
@@ -382,7 +406,7 @@ const TasksPage = () => {
                       <CurrentTimeMarker time={currentTime} />
                     )}
                     <div
-                      className={`p-4 rounded-xl border transition-all ${
+                      className={`p-4 rounded-xl border transition-colors duration-100 ${
                         task.isCompleted
                           ? 'border-neutral-200 bg-neutral-50 opacity-70'
                           : 'border-neutral-200 hover:border-primary-light hover:bg-white'

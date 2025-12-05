@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -27,7 +27,7 @@ const isSameAsToday = (date: Date): boolean => {
   );
 };
 
-const Sidebar: React.FC<SidebarProps> = ({
+const Sidebar: React.FC<SidebarProps> = React.memo(({
   selectedDate,
   onDateSelect,
   streak = 0,
@@ -36,29 +36,41 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [viewDate, setViewDate] = React.useState(new Date());
 
-  const calendarDates = getCalendarDates(
-    viewDate.getFullYear(),
-    viewDate.getMonth()
+  const calendarDates = useMemo(() => 
+    getCalendarDates(viewDate.getFullYear(), viewDate.getMonth()),
+    [viewDate.getFullYear(), viewDate.getMonth()]
   );
 
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekDays = useMemo(() => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], []);
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(viewDate);
-    newDate.setMonth(viewDate.getMonth() + (direction === 'next' ? 1 : -1));
-    setViewDate(newDate);
-  };
+  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
+    setViewDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setMonth(prevDate.getMonth() + (direction === 'next' ? 1 : -1));
+      return newDate;
+    });
+  }, []);
 
-  const formatMonthYear = (date: Date) => {
+  const formatMonthYear = useCallback((date: Date) => {
     return date.toLocaleDateString('en-US', {
       month: 'long',
       year: 'numeric',
     });
-  };
+  }, []);
 
-  const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  const isSelectedToday = isSameAsToday(selectedDate);
-  const progressLabel = isSelectedToday ? "Today's Progress" : `${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} Progress`;
+  const progressPercent = useMemo(() => 
+    totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
+    [completedTasks, totalTasks]
+  );
+  
+  const isSelectedToday = useMemo(() => isSameAsToday(selectedDate), [selectedDate]);
+  
+  const progressLabel = useMemo(() => 
+    isSelectedToday 
+      ? "Today's Progress" 
+      : `${selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} Progress`,
+    [isSelectedToday, selectedDate]
+  );
 
   return (
     <aside className="w-full lg:w-80 shrink-0">
@@ -163,6 +175,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
     </aside>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

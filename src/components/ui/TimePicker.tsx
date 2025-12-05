@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Clock, ChevronUp, ChevronDown, X } from 'lucide-react';
 
 interface TimePickerProps {
@@ -15,7 +15,30 @@ interface TimePickerProps {
 
 type GridMode = 'none' | 'hours' | 'minutes';
 
-const TimePicker: React.FC<TimePickerProps> = ({
+// Memoized grid button component to prevent re-renders
+const GridButton = React.memo<{
+  value: number;
+  isSelected: boolean;
+  onClick: (value: number) => void;
+}>(({ value, isSelected, onClick }) => (
+  <button
+    type="button"
+    onClick={() => onClick(value)}
+    className={`
+      py-2 px-1 text-sm font-medium rounded-lg transition-colors duration-100
+      ${isSelected 
+        ? 'bg-primary text-white' 
+        : 'bg-neutral-100 text-neutral-700 hover:bg-primary/20 hover:text-primary'
+      }
+    `}
+  >
+    {value.toString().padStart(2, '0')}
+  </button>
+));
+
+GridButton.displayName = 'GridButton';
+
+const TimePicker: React.FC<TimePickerProps> = React.memo(({
   value = '',
   onChange,
   label,
@@ -208,13 +231,19 @@ const TimePicker: React.FC<TimePickerProps> = ({
     };
   }, [incrementHour, decrementHour, incrementMinute, decrementMinute]);
 
-  // Generate hour options
-  const hourOptions = use24Hour 
-    ? Array.from({ length: 24 }, (_, i) => i)
-    : Array.from({ length: 12 }, (_, i) => i + 1);
+  // Generate hour options - memoized
+  const hourOptions = useMemo(() => 
+    use24Hour 
+      ? Array.from({ length: 24 }, (_, i) => i)
+      : Array.from({ length: 12 }, (_, i) => i + 1),
+    [use24Hour]
+  );
 
-  // Generate minute options (0-59)
-  const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
+  // Generate minute options (0-59) - memoized once
+  const minuteOptions = useMemo(() => 
+    Array.from({ length: 60 }, (_, i) => i),
+    []
+  );
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
@@ -233,7 +262,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
         className={`
           w-full flex items-center justify-between gap-2 px-4 py-3 
           bg-white border border-neutral-200 rounded-xl
-          text-left transition-all duration-200
+          text-left transition-colors duration-100
           ${disabled 
             ? 'opacity-50 cursor-not-allowed' 
             : 'hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
@@ -249,7 +278,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
         </div>
         <ChevronDown 
           size={18} 
-          className={`text-neutral-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`text-neutral-400 transition-transform duration-100 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -373,27 +402,19 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 <button
                   type="button"
                   onClick={() => setGridMode('none')}
-                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors duration-100"
                 >
                   <X size={18} className="text-neutral-500" />
                 </button>
               </div>
               <div className={`grid ${use24Hour ? 'grid-cols-6' : 'grid-cols-4'} gap-1.5 max-h-[200px] overflow-y-auto`}>
                 {hourOptions.map((h) => (
-                  <button
+                  <GridButton
                     key={h}
-                    type="button"
-                    onClick={() => selectHour(h)}
-                    className={`
-                      py-2 px-1 text-sm font-medium rounded-lg transition-all
-                      ${hours === h 
-                        ? 'bg-primary text-white' 
-                        : 'bg-neutral-100 text-neutral-700 hover:bg-primary/20 hover:text-primary'
-                      }
-                    `}
-                  >
-                    {h.toString().padStart(2, '0')}
-                  </button>
+                    value={h}
+                    isSelected={hours === h}
+                    onClick={selectHour}
+                  />
                 ))}
               </div>
             </div>
@@ -407,27 +428,19 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 <button
                   type="button"
                   onClick={() => setGridMode('none')}
-                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors duration-100"
                 >
                   <X size={18} className="text-neutral-500" />
                 </button>
               </div>
-              <div className="grid grid-cols-6 gap-1.5 max-h-[240px] overflow-y-auto">
+              <div className="grid grid-cols-6 gap-1.5 max-h-60 overflow-y-auto">
                 {minuteOptions.map((m) => (
-                  <button
+                  <GridButton
                     key={m}
-                    type="button"
-                    onClick={() => selectMinute(m)}
-                    className={`
-                      py-2 px-1 text-sm font-medium rounded-lg transition-all
-                      ${minutes === m 
-                        ? 'bg-primary text-white' 
-                        : 'bg-neutral-100 text-neutral-700 hover:bg-primary/20 hover:text-primary'
-                      }
-                    `}
-                  >
-                    {m.toString().padStart(2, '0')}
-                  </button>
+                    value={m}
+                    isSelected={minutes === m}
+                    onClick={selectMinute}
+                  />
                 ))}
               </div>
             </div>
@@ -436,6 +449,8 @@ const TimePicker: React.FC<TimePickerProps> = ({
       )}
     </div>
   );
-};
+});
+
+TimePicker.displayName = 'TimePicker';
 
 export default TimePicker;

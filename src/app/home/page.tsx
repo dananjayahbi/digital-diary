@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Sun, Leaf } from 'lucide-react';
 import { Header, Sidebar } from '@/components/layout';
 import {
@@ -10,6 +10,7 @@ import {
   TaskModal,
   StreakWidget,
   DailyCard,
+  QuoteWidget,
 } from '@/components/common';
 import { 
   Card, 
@@ -30,7 +31,13 @@ const HomePage = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  // Memoized date handler to prevent unnecessary re-renders
+  const handleDateSelect = useCallback((date: Date) => {
+    setSelectedDate(date);
+  }, []);
+
   // Use custom hooks for data fetching
+  // The useTasks hook will automatically refetch when selectedDate changes (via dateString memoization)
   const {
     tasks,
     isLoading: tasksLoading,
@@ -38,7 +45,6 @@ const HomePage = () => {
     createTask,
     updateTask,
     deleteTask,
-    fetchTasks,
   } = useTasks({ date: selectedDate });
 
   const {
@@ -50,11 +56,6 @@ const HomePage = () => {
 
   const { prompt, isLoading: promptLoading } = usePrompt();
   const { createEntry } = useDiary({ autoFetch: false });
-
-  // Refetch tasks when selected date changes
-  useEffect(() => {
-    fetchTasks();
-  }, [selectedDate, fetchTasks]);
 
   const handleToggleComplete = useCallback(async (taskId: string, completed: boolean) => {
     await toggleComplete(taskId, completed);
@@ -118,12 +119,15 @@ const HomePage = () => {
     }
   }, [createEntry, prompt]);
 
-  const greeting = getGreeting();
-  const todayDate = formatDate(new Date(), 'full');
+  // Memoize expensive computations
+  const greeting = useMemo(() => getGreeting(), []);
+  const todayDate = useMemo(() => formatDate(new Date(), 'full'), []);
 
-  // Calculate completed tasks for progress
-  const completedTasks = tasks.filter(t => t.isCompleted).length;
-  const totalTasks = tasks.length;
+  // Calculate completed tasks for progress - memoized
+  const { completedTasks, totalTasks } = useMemo(() => ({
+    completedTasks: tasks.filter(t => t.isCompleted).length,
+    totalTasks: tasks.length
+  }), [tasks]);
 
   return (
     <div className="min-h-screen relative">
@@ -144,6 +148,9 @@ const HomePage = () => {
               Let&apos;s make today meaningful and productive
             </p>
           </div>
+
+          {/* Motivational Quote */}
+          <QuoteWidget className="mb-8" />
 
           {/* Main Content Grid */}
           <div className="flex flex-col lg:flex-row gap-6">
@@ -184,7 +191,7 @@ const HomePage = () => {
               ) : (
                 <Sidebar
                   selectedDate={selectedDate}
-                  onDateSelect={setSelectedDate}
+                  onDateSelect={handleDateSelect}
                   streak={journalStreak}
                   completedTasks={completedTasks}
                   totalTasks={totalTasks}

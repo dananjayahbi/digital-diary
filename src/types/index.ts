@@ -109,3 +109,19 @@ export interface TimeBlock {
   hour: number;
   tasks: Task[];
 }
+
+// Motivational quote types
+export interface MotivationalQuote {
+  id: string;
+  content: string;
+  author?: string | null;
+  isFavorite: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface QuoteFormData {
+  content: string;
+  author?: string;
+  isFavorite?: boolean;
+}

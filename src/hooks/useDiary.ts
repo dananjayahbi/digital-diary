@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { diaryApi } from '@/services/api';
 import type { DiaryEntry, MoodType } from '@/types';
 
@@ -32,13 +32,32 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use refs to avoid stale closures in callbacks
+  const dateRef = useRef(date);
+  const entriesRef = useRef(entries);
+  
+  // Update refs when values change
+  useEffect(() => {
+    dateRef.current = date;
+  }, [date]);
+  
+  useEffect(() => {
+    entriesRef.current = entries;
+  }, [entries]);
+  
+  // Memoize date string to prevent unnecessary re-fetches
+  const dateString = useMemo(() => {
+    return date ? date.toISOString().split('T')[0] : null;
+  }, [date?.getFullYear(), date?.getMonth(), date?.getDate()]);
 
   const fetchEntries = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const fetchedEntries = date
-        ? await diaryApi.getByDate(date)
+      const currentDate = dateRef.current;
+      const fetchedEntries = currentDate
+        ? await diaryApi.getByDate(currentDate)
         : await diaryApi.getAll(limit);
       setEntries(fetchedEntries);
     } catch (err) {
@@ -48,7 +67,7 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [date, limit]);
+  }, [dateString, limit]);
 
   const createEntry = useCallback(async (data: {
     content: string;
@@ -60,6 +79,7 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
   }): Promise<DiaryEntry | null> => {
     // Create optimistic entry with temporary ID
     const tempId = `temp-${Date.now()}`;
+    const currentDate = dateRef.current;
     const optimisticEntry: DiaryEntry = {
       id: tempId,
       content: data.content,
@@ -69,7 +89,7 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
       prompt: data.prompt || null,
       location: data.location || null,
       weather: null,
-      date: date || new Date(),
+      date: currentDate || new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -92,14 +112,15 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
       console.error('Error creating diary entry:', err);
       return null;
     }
-  }, [date]);
+  }, []);
 
   const updateEntry = useCallback(async (
     id: string,
     data: Partial<DiaryEntry>
   ): Promise<DiaryEntry | null> => {
     // Store original entry for potential rollback
-    const originalEntry = entries.find((e) => e.id === id);
+    const currentEntries = entriesRef.current;
+    const originalEntry = currentEntries.find((e) => e.id === id);
     
     // Optimistic update
     setEntries((prev) =>
@@ -125,10 +146,11 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
       console.error('Error updating diary entry:', err);
       return null;
     }
-  }, [entries]);
+  }, []);
 
   const deleteEntry = useCallback(async (id: string): Promise<void> => {
-    const entryToDelete = entries.find((e) => e.id === id);
+    const currentEntries = entriesRef.current;
+    const entryToDelete = currentEntries.find((e) => e.id === id);
     
     // Optimistic update
     setEntries((prev) => prev.filter((entry) => entry.id !== id));
@@ -144,7 +166,7 @@ export function useDiary(options: UseDiaryOptions = {}): UseDiaryReturn {
       setError(message);
       console.error('Error deleting diary entry:', err);
     }
-  }, [entries]);
+  }, []);
 
   useEffect(() => {
     if (autoFetch) {

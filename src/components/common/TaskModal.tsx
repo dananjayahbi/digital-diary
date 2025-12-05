@@ -121,7 +121,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   type="button"
                   onClick={() => setFormData({ ...formData, priority: value })}
                   className={`
-                    flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all
+                    flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors duration-100
                     ${formData.priority === value
                       ? 'text-white'
                       : 'bg-neutral-100 text-foreground hover:bg-neutral-200'

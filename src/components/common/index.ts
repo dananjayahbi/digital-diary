@@ -5,3 +5,4 @@ export { default as JournalCard } from './JournalCard';
 export { default as TaskModal } from './TaskModal';
 export { default as StreakWidget } from './StreakWidget';
 export { default as DailyCard } from './DailyCard';
+export { default as QuoteWidget } from './QuoteWidget';

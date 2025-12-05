@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { tasksApi } from '@/services/api';
 import type { Task, TaskFormData } from '@/types';
 
@@ -25,13 +25,32 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use refs to avoid stale closures in callbacks
+  const dateRef = useRef(date);
+  const tasksRef = useRef(tasks);
+  
+  // Update refs when values change
+  useEffect(() => {
+    dateRef.current = date;
+  }, [date]);
+  
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
+  
+  // Memoize date string to prevent unnecessary re-fetches
+  const dateString = useMemo(() => {
+    return date ? date.toISOString().split('T')[0] : null;
+  }, [date?.getFullYear(), date?.getMonth(), date?.getDate()]);
 
   const fetchTasks = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const fetchedTasks = date
-        ? await tasksApi.getByDate(date)
+      const currentDate = dateRef.current;
+      const fetchedTasks = currentDate
+        ? await tasksApi.getByDate(currentDate)
         : await tasksApi.getAll();
       setTasks(fetchedTasks);
     } catch (err) {
@@ -41,11 +60,13 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [date]);
+  }, [dateString]);
 
   const createTask = useCallback(async (data: TaskFormData): Promise<Task | null> => {
     // Create optimistic task with temporary ID
     const tempId = `temp-${Date.now()}`;
+    const currentDate = dateRef.current;
+    const currentTasks = tasksRef.current;
     const optimisticTask: Task = {
       id: tempId,
       title: data.title,
@@ -55,10 +76,10 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       startTime: data.startTime ? new Date(data.startTime) : null,
       endTime: data.endTime ? new Date(data.endTime) : null,
       duration: null,
-      date: date || new Date(),
+      date: currentDate || new Date(),
       category: null,
       categoryId: null,
-      order: tasks.length, // Add order based on current task count
+      order: currentTasks.length, // Add order based on current task count
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -69,7 +90,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     try {
       const newTask = await tasksApi.create({
         ...data,
-        date: date || new Date(),
+        date: currentDate || new Date(),
       });
       // Replace optimistic task with real task from server
       setTasks((prev) =>
@@ -84,11 +105,12 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       console.error('Error creating task:', err);
       return null;
     }
-  }, [date, tasks.length]);
+  }, []);
 
   const updateTask = useCallback(async (id: string, data: Partial<Task>): Promise<Task | null> => {
     // Store original task for potential rollback
-    const originalTask = tasks.find((t) => t.id === id);
+    const currentTasks = tasksRef.current;
+    const originalTask = currentTasks.find((t) => t.id === id);
     
     // Optimistic update
     setTasks((prev) =>
@@ -114,7 +136,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       console.error('Error updating task:', err);
       return null;
     }
-  }, [tasks]);
+  }, []);
 
   const toggleComplete = useCallback(async (id: string, isCompleted: boolean): Promise<void> => {
     // Optimistic update
@@ -141,7 +163,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
   const deleteTask = useCallback(async (id: string): Promise<void> => {
     // Store task for potential rollback
-    const taskToDelete = tasks.find((t) => t.id === id);
+    const currentTasks = tasksRef.current;
+    const taskToDelete = currentTasks.find((t) => t.id === id);
     
     // Optimistic update
     setTasks((prev) => prev.filter((task) => task.id !== id));
@@ -157,7 +180,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       setError(message);
       console.error('Error deleting task:', err);
     }
-  }, [tasks]);
+  }, []);
 
   useEffect(() => {
     if (autoFetch) {

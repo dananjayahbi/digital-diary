@@ -1,4 +1,4 @@
-import type { Task, TaskFormData, DiaryEntry, Category, Streak, DailyPrompt, MoodType } from '@/types';
+import type { Task, TaskFormData, DiaryEntry, Category, Streak, DailyPrompt, MoodType, MotivationalQuote, QuoteFormData } from '@/types';
 
 const API_BASE = '/api';
 
@@ -182,6 +182,56 @@ export const promptsApi = {
   },
 };
 
+// ============ QUOTES API ============
+
+export const quotesApi = {
+  // Get all quotes
+  getAll: async (): Promise<MotivationalQuote[]> => {
+    return fetchApi<MotivationalQuote[]>('/quotes');
+  },
+
+  // Get a random quote
+  getRandom: async (): Promise<MotivationalQuote | null> => {
+    return fetchApi<MotivationalQuote | null>('/quotes?random=true');
+  },
+
+  // Get a single quote by ID
+  getById: async (id: string): Promise<MotivationalQuote> => {
+    return fetchApi<MotivationalQuote>(`/quotes/${id}`);
+  },
+
+  // Create a new quote
+  create: async (data: QuoteFormData): Promise<MotivationalQuote> => {
+    return fetchApi<MotivationalQuote>('/quotes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Update a quote
+  update: async (id: string, data: Partial<QuoteFormData>): Promise<MotivationalQuote> => {
+    return fetchApi<MotivationalQuote>(`/quotes/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Toggle favorite status
+  toggleFavorite: async (id: string, isFavorite: boolean): Promise<MotivationalQuote> => {
+    return fetchApi<MotivationalQuote>(`/quotes/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isFavorite }),
+    });
+  },
+
+  // Delete a quote
+  delete: async (id: string): Promise<void> => {
+    await fetchApi(`/quotes/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 // Export all APIs as a single object for convenience
 export const api = {
   tasks: tasksApi,
@@ -189,6 +239,7 @@ export const api = {
   categories: categoriesApi,
   streaks: streaksApi,
   prompts: promptsApi,
+  quotes: quotesApi,
 };
 
 export default api;

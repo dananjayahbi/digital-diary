@@ -203,7 +203,7 @@ const JournalPage = () => {
                           {dayEntries.map((entry) => (
                             <div
                               key={entry.id}
-                              className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                              className={`p-4 rounded-xl border transition-colors duration-100 cursor-pointer ${
                                 selectedEntry?.id === entry.id
                                   ? 'border-primary bg-primary-muted'
                                   : 'border-neutral-200 hover:border-primary-light hover:bg-neutral-50'
@@ -295,7 +295,7 @@ const JournalPage = () => {
                               key={type}
                               onClick={() => setFormMood(formMood === type ? undefined : type)}
                               className={`
-                                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all
+                                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors duration-100
                                 ${formMood === type 
                                   ? 'bg-primary text-white' 
                                   : 'bg-neutral-100 hover:bg-neutral-200 text-foreground'

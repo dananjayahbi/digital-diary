@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { streaksApi } from '@/services/api';
 import type { Streak } from '@/types';
 
@@ -20,6 +20,19 @@ export function useStreaks(): UseStreaksReturn {
   const [activeDays, setActiveDays] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use refs to avoid stale closures in callbacks
+  const activeDaysRef = useRef(activeDays);
+  const longestStreakRef = useRef(longestStreak);
+  
+  // Update refs when values change
+  useEffect(() => {
+    activeDaysRef.current = activeDays;
+  }, [activeDays]);
+  
+  useEffect(() => {
+    longestStreakRef.current = longestStreak;
+  }, [longestStreak]);
 
   const fetchStreaks = useCallback(async () => {
     setIsLoading(true);
@@ -54,13 +67,14 @@ export function useStreaks(): UseStreaksReturn {
     try {
       const updatedStreak = await streaksApi.recordActivity('journal');
       setJournalStreak(updatedStreak.currentStreak);
-      setLongestStreak(Math.max(updatedStreak.longestStreak, longestStreak));
+      setLongestStreak(Math.max(updatedStreak.longestStreak, longestStreakRef.current));
       
       // Add today to active days if not already present
       const today = new Date();
       const todayStr = today.toDateString();
+      const currentActiveDays = activeDaysRef.current;
       
-      if (!activeDays.some((d) => d.toDateString() === todayStr)) {
+      if (!currentActiveDays.some((d) => d.toDateString() === todayStr)) {
         setActiveDays((prev) => [...prev, today]);
       }
     } catch (err) {
@@ -68,7 +82,7 @@ export function useStreaks(): UseStreaksReturn {
       setError(message);
       console.error('Error recording journal activity:', err);
     }
-  }, [activeDays, longestStreak]);
+  }, []);
 
   useEffect(() => {
     fetchStreaks();
